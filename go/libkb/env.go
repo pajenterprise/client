@@ -118,6 +118,7 @@ func (n NullConfiguration) GetDisableTeamAuditor() (bool, bool)             { re
 func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
+func (n NullConfiguration) GetDisableTeamBoxAuditor() (bool, bool)          { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
@@ -919,6 +920,16 @@ func (e *Env) GetDisableTeamAuditor() bool {
 	)
 }
 
+func (e *Env) GetDisableTeamBoxAuditor() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableTeamBoxAuditor,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_TEAM_BOX_AUDITOR") },
+		e.GetConfig().GetDisableTeamBoxAuditor,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
 func (e *Env) GetDisableMerkleAuditor() bool {
 	return e.GetBool(false,
 		e.cmd.GetDisableMerkleAuditor,
@@ -1553,6 +1564,7 @@ type AppConfig struct {
 	OutboxStorageEngine            string
 	DisableTeamAuditor             bool
 	DisableMerkleAuditor           bool
+	DisableTeamBoxAuditor          bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1675,6 +1687,10 @@ func (c AppConfig) GetDisableTeamAuditor() (bool, bool) {
 
 func (c AppConfig) GetDisableMerkleAuditor() (bool, bool) {
 	return c.DisableMerkleAuditor, true
+}
+
+func (c AppConfig) GetDisableTeamBoxAuditor() (bool, bool) {
+	return c.DisableTeamBoxAuditor, true
 }
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {

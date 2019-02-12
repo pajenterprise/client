@@ -77,6 +77,7 @@ type GlobalContext struct {
 	teamLoader       TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
 	teamAuditor      TeamAuditor
+	teamBoxAuditor   TeamBoxAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -148,7 +149,8 @@ type GlobalContext struct {
 }
 
 type GlobalTestOptions struct {
-	NoBug3964Repair bool
+	NoBug3964Repair             bool
+	NoAutorotateOnBoxAuditRetry bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
@@ -212,6 +214,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
 	g.teamAuditor = newNullTeamAuditor()
+	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -334,6 +337,11 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	st := g.stellar
 	if st != nil {
 		st.OnLogout()
+	}
+
+	tba := g.teamBoxAuditor
+	if tba != nil {
+		tba.OnLogout(mctx)
 	}
 
 	g.logoutSecretStore(mctx, username, killSecrets)
@@ -573,6 +581,12 @@ func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamAuditor
+}
+
+func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamBoxAuditor
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -1112,6 +1126,12 @@ func (g *GlobalContext) SetTeamAuditor(a TeamAuditor) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamAuditor = a
+}
+
+func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamBoxAuditor = a
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {
