@@ -22,7 +22,7 @@ import (
 )
 
 func setupFileDataTest(t *testing.T, maxBlockSize int64,
-	maxPtrsPerBlock int) (*fileData, BlockCache, DirtyBlockCache, *dirtyFile) {
+	maxPtrsPerBlock int) (*FileData, BlockCache, DirtyBlockCache, *dirtyFile) {
 	// Make a fake file.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
@@ -60,7 +60,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
-	fd := newFileData(
+	fd := NewFileData(
 		file, chargedTo, crypto, bsplit, kmd, getter, cacher,
 		logger.NewTestLogger(t))
 	df := newDirtyFile(file, dirtyBcache)
@@ -199,7 +199,7 @@ func testFileDataLevelFromData(t *testing.T, maxBlockSize Int64Offset,
 	return prevChildren[0]
 }
 
-func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
+func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 	ptr BlockPointer, off Int64Offset, dirtyBcache DirtyBlockCache) (
 	dirtyPtrs map[BlockPointer]bool) {
 	dirtyPtrs = make(map[BlockPointer]bool)
@@ -241,7 +241,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *fileData,
 	return dirtyPtrs
 }
 
-func testFileDataCheckWrite(t *testing.T, fd *fileData,
+func testFileDataCheckWrite(t *testing.T, fd *FileData,
 	dirtyBcache DirtyBlockCache, df *dirtyFile, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, expectedSize uint64,
 	expectedUnrefs []BlockInfo, expectedDirtiedBytes int64,
@@ -324,7 +324,7 @@ func TestFileDataWriteNewLevel(t *testing.T) {
 	}
 }
 
-func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
+func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 	maxBlockSize Int64Offset, maxPtrsPerBlock int, existingData []byte,
 	holes []testFileDataHole, cleanBcache BlockCache) (*FileBlock, int) {
 	// First fill in the leaf blocks.
@@ -607,7 +607,7 @@ func TestFileDataWriteHole(t *testing.T) {
 	}
 }
 
-func testFileDataCheckTruncateExtend(t *testing.T, fd *fileData,
+func testFileDataCheckTruncateExtend(t *testing.T, fd *FileData,
 	dirtyBcache DirtyBlockCache, df *dirtyFile, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, expectedTopLevel testFileDataLevel) {
 	// Do the extending truncate.
@@ -699,7 +699,7 @@ func TestFileDataTruncateExtendLevel(t *testing.T) {
 	}
 }
 
-func testFileDataCheckTruncateShrink(t *testing.T, fd *fileData,
+func testFileDataCheckTruncateShrink(t *testing.T, fd *FileData,
 	dirtyBcache DirtyBlockCache, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, expectedUnrefs []BlockInfo,
 	expectedDirtiedBytes int64, expectedTopLevel testFileDataLevel) {

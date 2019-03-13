@@ -116,7 +116,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	}
 
 	df := newDirtyFile(file, dirtyBcache)
-	fd := newFileData(file, chargedTo, fup.config.cryptoPure(),
+	fd := NewFileData(file, chargedTo, fup.config.cryptoPure(),
 		fup.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fup.log)
 
 	// Write all the data.

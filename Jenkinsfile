@@ -429,6 +429,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-tags fuse',
           timeout: '15m',
         ],
+        'github.com/keybase/client/go/kbfs/blocktree': [
+          flags: '-race',
+          timeout: '30s',
+        ],
         'github.com/keybase/client/go/kbfs/libfuse': [
           flags: '',
           timeout: '3m',

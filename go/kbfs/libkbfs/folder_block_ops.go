@@ -1709,7 +1709,7 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 		fbo.log.CWarningf(ctx, "Couldn't find uid during recovery: %v", err)
 		return
 	}
-	fd := fbo.newFileData(lState, file, chargedTo, kmd)
+	fd := fbo.NewFileData(lState, file, chargedTo, kmd)
 
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
@@ -1801,7 +1801,7 @@ func (fbo *folderBlockOps) PrepRename(
 func (fbo *folderBlockOps) newFileData(lState *kbfssync.LockState,
 	file path, chargedTo keybase1.UserOrTeamID, kmd libkey.KeyMetadata) *fileData {
 	fbo.blockLock.AssertAnyLocked(lState)
-	return newFileData(file, chargedTo, fbo.config.Crypto(),
+	return NewFileData(file, chargedTo, fbo.config.Crypto(),
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {
@@ -1820,9 +1820,9 @@ func (fbo *folderBlockOps) newFileData(lState *kbfssync.LockState,
 
 func (fbo *folderBlockOps) newFileDataWithCache(lState *kbfssync.LockState,
 	file path, chargedTo keybase1.UserOrTeamID, kmd libkey.KeyMetadata,
-	dirtyBcache DirtyBlockCacheSimple) *fileData {
+	dirtyBcache DirtyBlockCacheSimple) *FileData {
 	fbo.blockLock.AssertAnyLocked(lState)
-	return newFileData(file, chargedTo, fbo.config.Crypto(),
+	return NewFileData(file, chargedTo, fbo.config.Crypto(),
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {

@@ -16,25 +16,27 @@ import (
 	"golang.org/x/net/context"
 )
 
-// fileBlockGetter is a function that gets a block suitable for
+// FileBlockGetter is a function that gets a block suitable for
 // reading or writing, and also returns whether the block was already
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
-type fileBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
+type FileBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
 	path, blockReqType) (fblock *FileBlock, wasDirty bool, err error)
 
-// fileData is a helper struct for accessing and manipulating data
+// FileData is a helper struct for accessing and manipulating data
 // within a file.  It's meant for use within a single scope, not for
 // long-term storage.  The caller must ensure goroutine-safety.
-type fileData struct {
-	getter fileBlockGetter
+type FileData struct {
+	getter FileBlockGetter
 	tree   *blockTree
 }
 
-func newFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
-	bsplit BlockSplitter, kmd libkey.KeyMetadata, getter fileBlockGetter,
-	cacher dirtyBlockCacher, log logger.Logger) *fileData {
-	fd := &fileData{
+// NewFileData makes a new file data object for the given `file`
+// within the given `kmd`.
+func NewFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
+	bsplit BlockSplitter, kmd libkey.KeyMetadata, getter FileBlockGetter,
+	cacher dirtyBlockCacher, log logger.Logger) *FileData {
+	fd := &FileData{
 		getter: getter,
 	}
 	fd.tree = &blockTree{
@@ -50,18 +52,18 @@ func newFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
 	return fd
 }
 
-func (fd *fileData) rootBlockPointer() BlockPointer {
+func (fd *FileData) rootBlockPointer() BlockPointer {
 	return fd.tree.file.tailPointer()
 }
 
-func (fd *fileData) blockGetter(
+func (fd *FileData) blockGetter(
 	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
 	file path, rtype blockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return fd.getter(ctx, kmd, ptr, file, rtype)
 }
 
-func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
+func (fd *FileData) getLeafBlocksForOffsetRange(ctx context.Context,
 	ptr BlockPointer, pblock *FileBlock, startOff, endOff Int64Offset,
 	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]Block, nextBlockOffset Int64Offset,
@@ -95,7 +97,7 @@ func childFileIptr(p parentBlockAndChildIndex) IndirectFilePtr {
 // the data into a single buffer if desired. If `prefixOk` is true,
 // the function will ignore context deadline errors and return
 // whatever prefix of the data it could fetch within the deadine.
-func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
+func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 	startOff, endOff Int64Offset, prefixOk bool) ([][]byte, error) {
 	if startOff < 0 || endOff < -1 {
 		return nil, fmt.Errorf("Bad offset range [%d, %d)", startOff, endOff)
@@ -241,7 +243,7 @@ const readTimeoutSmallerBy = 2 * time.Second
 // `startOff`.  Returns the number of bytes copied.  If the read
 // operation nears the deadline set in `ctx`, it returns as big a
 // prefix as possible before reaching the deadline.
-func (fd *fileData) read(ctx context.Context, dest []byte,
+func (fd *FileData) read(ctx context.Context, dest []byte,
 	startOff Int64Offset) (int64, error) {
 	if len(dest) == 0 {
 		return 0, nil
@@ -279,7 +281,7 @@ func (fd *fileData) read(ctx context.Context, dest []byte,
 // getBytes returns a buffer containing data from the file, in the
 // half-inclusive range `[startOff, endOff)`.  If `endOff` == -1, it
 // returns data until the end of the file.
-func (fd *fileData) getBytes(ctx context.Context,
+func (fd *FileData) getBytes(ctx context.Context,
 	startOff, endOff Int64Offset) (data []byte, err error) {
 	bytes, err := fd.getByteSlicesInOffsetRange(ctx, startOff, endOff, false)
 	if err != nil {
@@ -303,7 +305,7 @@ func (fd *fileData) getBytes(ctx context.Context,
 // createIndirectBlock creates a new indirect block and pick a new id
 // for the existing block, and use the existing block's ID for the new
 // indirect block that becomes the parent.
-func (fd *fileData) createIndirectBlock(
+func (fd *FileData) createIndirectBlock(
 	ctx context.Context, df *dirtyFile, dver DataVer) (*FileBlock, error) {
 	newID, err := fd.tree.crypto.MakeTemporaryBlockID()
 	if err != nil {
@@ -346,7 +348,7 @@ func (fd *fileData) createIndirectBlock(
 	return fblock, nil
 }
 
-func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
+func (fd *FileData) getFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off Int64Offset, rtype blockReqType) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff Int64Offset,
@@ -370,7 +372,7 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, wasDirty, nil
 }
 
-func (fd *fileData) fileTopBlocker(df *dirtyFile) createTopBlockFn {
+func (fd *FileData) fileTopBlocker(df *dirtyFile) createTopBlockFn {
 	return func(ctx context.Context, dv DataVer) (BlockWithPtrs, error) {
 		return fd.createIndirectBlock(ctx, df, dv)
 	}
@@ -392,7 +394,7 @@ func (fd *fileData) fileTopBlocker(df *dirtyFile) createTopBlockFn {
 //   byte dirtied.  As above, it may be non-zero even if err != nil.
 // * bytesExtended is the number of bytes the length of the file has been
 //   extended as part of this write.
-func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
+func (fd *FileData) write(ctx context.Context, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, df *dirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
 	newlyDirtiedChildBytes int64, bytesExtended int64, err error) {
@@ -577,7 +579,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 // * newDe: a new directory entry with the EncodedSize cleared.
 // * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
 //   the truncate.
-func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
+func (fd *FileData) truncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, parentBlocks []parentBlockAndChildIndex,
 	oldDe DirEntry, df *dirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
@@ -646,7 +648,7 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 // * newlyDirtiedChildBytes is the total amount of block data dirtied by this
 //   truncate, including the entire size of blocks that have had at least one
 //   byte dirtied.  As above, it may be non-zero even if err != nil.
-func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
+func (fd *FileData) truncateShrink(ctx context.Context, size uint64,
 	topBlock *FileBlock, oldDe DirEntry) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, unrefs []BlockInfo,
 	newlyDirtiedChildBytes int64, err error) {
@@ -807,7 +809,7 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	return newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, nil
 }
 
-func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
+func (fd *FileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off Int64Offset, rtype blockReqType,
 	dirtyBcache DirtyBlockCache) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
@@ -836,7 +838,7 @@ func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 // differently (i.e., if the BlockSplitter is using
 // fingerprinting-based boundaries).  It returns the set of blocks
 // that now need to be unreferenced.
-func (fd *fileData) split(ctx context.Context, id tlf.ID,
+func (fd *FileData) split(ctx context.Context, id tlf.ID,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock, df *dirtyFile) (
 	unrefs []BlockInfo, err error) {
 	if !topBlock.IsInd {
@@ -988,7 +990,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 // blocks, and updates their block IDs in their parent block's list of
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
-func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
+func (fd *FileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
@@ -1001,12 +1003,12 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 		})
 }
 
-func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(
+func (fd *FileData) getIndirectFileBlockInfosWithTopBlock(
 	ctx context.Context, topBlock *FileBlock) ([]BlockInfo, error) {
 	return fd.tree.getIndirectBlockInfosWithTopBlock(ctx, topBlock)
 }
 
-func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
+func (fd *FileData) getIndirectFileBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
 	return fd.tree.getIndirectBlockInfos(ctx)
 }
@@ -1014,7 +1016,7 @@ func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 // findIPtrsAndClearSize looks for the given set of indirect pointers,
 // and returns whether they could be found.  As a side effect, it also
 // clears the encoded size for those indirect pointers.
-func (fd *fileData) findIPtrsAndClearSize(
+func (fd *FileData) findIPtrsAndClearSize(
 	ctx context.Context, topBlock *FileBlock, ptrs map[BlockPointer]bool) (
 	found map[BlockPointer]bool, err error) {
 	if !topBlock.IsInd || len(ptrs) == 0 {
@@ -1086,7 +1088,7 @@ func (fd *fileData) findIPtrsAndClearSize(
 // and making new random BlockPointers for all indirect blocks.  It
 // returns the new top pointer of the copy, and all the new child
 // pointers in the copy.
-func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
+func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
 	topBlock, _, err := fd.getter(ctx, fd.tree.kmd, fd.rootBlockPointer(),
 		fd.tree.file, blockRead)
@@ -1235,7 +1237,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 // adds all child blocks to the provided `bps`, including both the
 // ones that were deduplicated and the ones that weren't.  It returns
 // the BlockInfos for all children.
-func (fd *fileData) undupChildrenInCopy(ctx context.Context,
+func (fd *FileData) undupChildrenInCopy(ctx context.Context,
 	bcache BlockCache, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
@@ -1286,7 +1288,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 // deepCopy(), and readies all the non-leaf children of the top block.
 // It adds all readied blocks to the provided `bps`.  It returns the
 // BlockInfos for all non-leaf children.
-func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
+func (fd *FileData) readyNonLeafBlocksInCopy(ctx context.Context,
 	bcache BlockCache, bops BlockOps, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
