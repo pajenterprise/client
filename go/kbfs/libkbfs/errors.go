@@ -33,17 +33,6 @@ func (e WrapError) String() string {
 	return e.Err.Error()
 }
 
-// NameExistsError indicates that the user tried to create an entry
-// for a name that already existed in a subdirectory.
-type NameExistsError struct {
-	Name string
-}
-
-// Error implements the error interface for NameExistsError
-func (e NameExistsError) Error() string {
-	return fmt.Sprintf("%s already exists", e.Name)
-}
-
 // InvalidBlockRefError indicates an invalid block reference was
 // encountered.
 type InvalidBlockRefError struct {
@@ -413,15 +402,6 @@ func (e InvalidVersionError) Error() string {
 		return e.msg
 	}
 	return "The version provided is not valid."
-}
-
-// BadSplitError indicates that the BlockSplitter has an error.
-type BadSplitError struct {
-}
-
-// Error implements the error interface for BadSplitError
-func (e BadSplitError) Error() string {
-	return "Unexpected bad block split"
 }
 
 // TooLowByteCountError indicates that size of a block is smaller than

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -210,11 +210,10 @@ func (b *BlockSplitterSimple) MaxPtrsPerBlock() int {
 	return b.maxPtrsPerBlock
 }
 
-// ShouldEmbedBlockChanges implements the BlockSplitter interface for
+// ShouldEmbedData implements the BlockSplitter interface for
 // BlockSplitterSimple.
-func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
-	bc *BlockChanges) bool {
-	return bc.SizeEstimate() <= b.blockChangeEmbedMaxSize
+func (b *BlockSplitterSimple) ShouldEmbedData(size uint64) bool {
+	return size <= b.blockChangeEmbedMaxSize
 }
 
 // SplitDirIfNeeded implements the BlockSplitter interface for

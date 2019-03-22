@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -19,7 +19,7 @@ import (
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
 type dirBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
-	path, blockReqType) (dblock *DirBlock, wasDirty bool, err error)
+	path, BlockReqType) (dblock *DirBlock, wasDirty bool, err error)
 
 // dirData is a helper struct for accessing and manipulating data
 // within a directory.  It's meant for use within a single scope, not
@@ -30,7 +30,7 @@ type dirData struct {
 }
 
 func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
-	crypto cryptoPure, bsplit BlockSplitter, kmd libkey.KeyMetadata,
+	crypto CryptoPure, bsplit BlockSplitter, kmd libkey.KeyMetadata,
 	getter dirBlockGetter, cacher dirtyBlockCacher,
 	log logger.Logger) *dirData {
 	dd := &dirData{
@@ -55,7 +55,7 @@ func (dd *dirData) rootBlockPointer() BlockPointer {
 
 func (dd *dirData) blockGetter(
 	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
-	dir path, rtype blockReqType) (
+	dir path, rtype BlockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return dd.getter(ctx, kmd, ptr, dir, rtype)
 }
@@ -66,7 +66,7 @@ var hiddenEntries = map[string]bool{
 	".kbfs_deleted_repos": true,
 }
 
-func (dd *dirData) getTopBlock(ctx context.Context, rtype blockReqType) (
+func (dd *dirData) getTopBlock(ctx context.Context, rtype BlockReqType) (
 	*DirBlock, error) {
 	topBlock, _, err := dd.getter(
 		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, rtype)
@@ -333,17 +333,18 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) (
 // blocks, and updates their block IDs in their parent block's list of
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
-func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
+func (dd *dirData) ready(ctx context.Context, id tlf.ID,
+	bcache BlockCacheWithPtrChecking, dirtyBcache IsDirtyProvider,
+	rp ReadyProvider, bps blockPutState,
 	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(
-		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)
+		ctx, id, bcache, dirtyBcache, rp, bps, topBlock, nil)
 }
 
 // getDirtyChildPtrs returns a set of dirty child pointers (not the
 // root pointer) for the directory.
 func (dd *dirData) getDirtyChildPtrs(
-	ctx context.Context, dirtyBcache isDirtyProvider) (
+	ctx context.Context, dirtyBcache IsDirtyProvider) (
 	ptrs map[BlockPointer]bool, err error) {
 	topBlock, err := dd.getTopBlock(ctx, blockRead)
 	if err != nil {

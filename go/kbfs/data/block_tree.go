@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"context"
@@ -27,7 +27,7 @@ const maxBlockFetchWorkers = 100
 // It may be called from new goroutines, and must handle any required
 // locks accordingly.
 type blockGetterFn func(context.Context, libkey.KeyMetadata, BlockPointer,
-	path, blockReqType) (block BlockWithPtrs, wasDirty bool, err error)
+	path, BlockReqType) (block BlockWithPtrs, wasDirty bool, err error)
 
 // dirtyBlockCacher writes dirty blocks to a cache.
 type dirtyBlockCacher func(
@@ -36,7 +36,7 @@ type dirtyBlockCacher func(
 type blockTree struct {
 	file      path
 	chargedTo keybase1.UserOrTeamID
-	crypto    cryptoPure
+	crypto    CryptoPure
 	kmd       libkey.KeyMetadata
 	bsplit    BlockSplitter
 	getter    blockGetterFn
@@ -78,7 +78,7 @@ func (bt *blockTree) rootBlockPointer() BlockPointer {
 // `off`, along with the set of indirect blocks leading to that leaf
 // (if any).
 func (bt *blockTree) getBlockAtOffset(ctx context.Context,
-	topBlock BlockWithPtrs, off Offset, rtype blockReqType) (
+	topBlock BlockWithPtrs, off Offset, rtype BlockReqType) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset,
 	wasDirty bool, err error) {
@@ -140,8 +140,8 @@ func (bt *blockTree) getBlockAtOffset(ctx context.Context,
 // on a subsection of the block tree (not necessarily starting from
 // the top block).
 func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
-	pblock BlockWithPtrs, off Offset, rtype blockReqType,
-	dirtyBcache isDirtyProvider, parentBlocks []parentBlockAndChildIndex) (
+	pblock BlockWithPtrs, off Offset, rtype BlockReqType,
+	dirtyBcache IsDirtyProvider, parentBlocks []parentBlockAndChildIndex) (
 	ptr BlockPointer, newParentBlocks []parentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Search along paths of dirty blocks until we find a dirty leaf
@@ -239,8 +239,8 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 // parallelize that process, since all the dirty blocks are guaranteed
 // to be local.  `nextBlockStartOff` is `nil` if there's no next block.
 func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
-	topBlock BlockWithPtrs, off Offset, rtype blockReqType,
-	dirtyBcache isDirtyProvider) (
+	topBlock BlockWithPtrs, off Offset, rtype BlockReqType,
+	dirtyBcache IsDirtyProvider) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Find the block matching the offset, if it exists.
@@ -1009,9 +1009,10 @@ type makeSyncFunc func(ptr BlockPointer) func() error
 // block info from any readied block to its corresponding old block
 // pointer.
 func (bt *blockTree) readyHelper(
-	ctx context.Context, id tlf.ID, bcache BlockCache, bops BlockOps,
-	bps blockPutState, pathsFromRoot [][]parentBlockAndChildIndex,
-	makeSync makeSyncFunc) (map[BlockInfo]BlockPointer, error) {
+	ctx context.Context, id tlf.ID, bcache BlockCacheWithPtrChecking,
+	rp ReadyProvider, bps blockPutState,
+	pathsFromRoot [][]parentBlockAndChildIndex, makeSync makeSyncFunc) (
+	map[BlockInfo]BlockPointer, error) {
 	oldPtrs := make(map[BlockInfo]BlockPointer)
 	newPtrs := make(map[BlockPointer]bool)
 
@@ -1033,7 +1034,7 @@ func (bt *blockTree) readyHelper(
 			}
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, bops, bt.crypto, bt.kmd, pb.pblock,
+				ctx, bcache, rp, bt.crypto, bt.kmd, pb.pblock,
 				bt.chargedTo, bt.rootBlockPointer().GetBlockType())
 			if err != nil {
 				return nil, err
@@ -1074,8 +1075,8 @@ func (bt *blockTree) readyHelper(
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (bt *blockTree) ready(
-	ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
+	ctx context.Context, id tlf.ID, bcache BlockCacheWithPtrChecking,
+	dirtyBcache IsDirtyProvider, rp ReadyProvider, bps blockPutState,
 	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
 	map[BlockInfo]BlockPointer, error) {
 	if !topBlock.IsIndirect() {
@@ -1124,7 +1125,7 @@ func (bt *blockTree) ready(
 		return nil, nil
 	}
 
-	return bt.readyHelper(ctx, id, bcache, bops, bps, dirtyLeafPaths, makeSync)
+	return bt.readyHelper(ctx, id, bcache, rp, bps, dirtyLeafPaths, makeSync)
 }
 
 func (bt *blockTree) getIndirectBlocksForOffsetRange(

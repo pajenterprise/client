@@ -34,8 +34,6 @@ import (
 )
 
 const (
-	// Max supported size of a directory entry name.
-	maxNameBytesDefault = 255
 	// Default time after setting the rekey bit before prompting for a
 	// paper key.
 	rekeyWithPromptWaitTimeDefault = 10 * time.Minute

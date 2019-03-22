@@ -33,24 +33,6 @@ const (
 	dirtyState
 )
 
-// blockReqType indicates whether an operation makes block
-// modifications or not
-type blockReqType int
-
-const (
-	// A block read request.
-	blockRead blockReqType = iota
-	// A block write request.
-	blockWrite
-	// A block read request that is happening from a different
-	// goroutine than the blockLock rlock holder, using the same lState.
-	blockReadParallel
-	// We are looking up a block for the purposes of creating a new
-	// node in the node cache for it; avoid any unlocks as part of the
-	// lookup process.
-	blockLookup
-)
-
 const (
 	// numBlockSizeWorkersMax is the max number of workers to use when
 	// fetching a set of block sizes.
@@ -2486,57 +2468,6 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 		return
 	}
 	si.bps = newBps
-}
-
-// ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
-// checking for duplicates.
-func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
-	crypto cryptoPure, kmd libkey.KeyMetadata, block Block,
-	chargedTo keybase1.UserOrTeamID, bType keybase1.BlockType) (
-	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
-	var ptr BlockPointer
-	directType := DirectBlock
-	if block.IsIndirect() {
-		directType = IndirectBlock
-	} else if fBlock, ok := block.(*FileBlock); ok {
-		// first see if we are duplicating any known blocks in this folder
-		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock)
-		if err != nil {
-			return
-		}
-	}
-
-	// Ready the block, even in the case where we can reuse an
-	// existing block, just so that we know what the size of the
-	// encrypted data will be.
-	bid, plainSize, readyBlockData, err := bops.Ready(ctx, kmd, block)
-	if err != nil {
-		return
-	}
-
-	if ptr.IsInitialized() {
-		ptr.RefNonce, err = crypto.MakeBlockRefNonce()
-		if err != nil {
-			return
-		}
-		ptr.SetWriter(chargedTo)
-		// In case we're deduping an old pointer with an unknown block type.
-		ptr.DirectType = directType
-	} else {
-		ptr = BlockPointer{
-			ID:         bid,
-			KeyGen:     kmd.LatestKeyGeneration(),
-			DataVer:    block.DataVersion(),
-			DirectType: directType,
-			Context:    kbfsblock.MakeFirstContext(chargedTo, bType),
-		}
-	}
-
-	info = BlockInfo{
-		BlockPointer: ptr,
-		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
-	}
-	return
 }
 
 // fileSyncState holds state for a sync operation for a single

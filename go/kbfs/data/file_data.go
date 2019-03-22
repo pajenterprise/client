@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 // dirty.  It may be called from new goroutines, and must handle any
 // required locks accordingly.
 type FileBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
-	path, blockReqType) (fblock *FileBlock, wasDirty bool, err error)
+	path, BlockReqType) (fblock *FileBlock, wasDirty bool, err error)
 
 // FileData is a helper struct for accessing and manipulating data
 // within a file.  It's meant for use within a single scope, not for
@@ -33,7 +33,7 @@ type FileData struct {
 
 // NewFileData makes a new file data object for the given `file`
 // within the given `kmd`.
-func NewFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
+func NewFileData(file path, chargedTo keybase1.UserOrTeamID, crypto CryptoPure,
 	bsplit BlockSplitter, kmd libkey.KeyMetadata, getter FileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger) *FileData {
 	fd := &FileData{
@@ -58,7 +58,7 @@ func (fd *FileData) rootBlockPointer() BlockPointer {
 
 func (fd *FileData) blockGetter(
 	ctx context.Context, kmd libkey.KeyMetadata, ptr BlockPointer,
-	file path, rtype blockReqType) (
+	file path, rtype BlockReqType) (
 	block BlockWithPtrs, wasDirty bool, err error) {
 	return fd.getter(ctx, kmd, ptr, file, rtype)
 }
@@ -349,7 +349,7 @@ func (fd *FileData) createIndirectBlock(
 }
 
 func (fd *FileData) getFileBlockAtOffset(ctx context.Context,
-	topBlock *FileBlock, off Int64Offset, rtype blockReqType) (
+	topBlock *FileBlock, off Int64Offset, rtype BlockReqType) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff Int64Offset,
 	wasDirty bool, err error) {
@@ -810,7 +810,7 @@ func (fd *FileData) truncateShrink(ctx context.Context, size uint64,
 }
 
 func (fd *FileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
-	topBlock *FileBlock, off Int64Offset, rtype blockReqType,
+	topBlock *FileBlock, off Int64Offset, rtype BlockReqType,
 	dirtyBcache DirtyBlockCache) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff Int64Offset, err error) {
@@ -990,11 +990,12 @@ func (fd *FileData) split(ctx context.Context, id tlf.ID,
 // blocks, and updates their block IDs in their parent block's list of
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
-func (fd *FileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache isDirtyProvider, bops BlockOps, bps blockPutState,
-	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
+func (fd *FileData) ready(ctx context.Context, id tlf.ID,
+	bcache BlockCacheWithPtrChecking, dirtyBcache IsDirtyProvider,
+	rp ReadyProvider, bps blockPutState, topBlock *FileBlock, df *dirtyFile) (
+	map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
-		ctx, id, bcache, dirtyBcache, bops, bps, topBlock,
+		ctx, id, bcache, dirtyBcache, rp, bps, topBlock,
 		func(ptr BlockPointer) func() error {
 			if df != nil {
 				return func() error { return df.setBlockSynced(ptr) }
@@ -1238,7 +1239,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 // ones that were deduplicated and the ones that weren't.  It returns
 // the BlockInfos for all children.
 func (fd *FileData) undupChildrenInCopy(ctx context.Context,
-	bcache BlockCache, bops BlockOps, bps blockPutState,
+	bcache BlockCacheWithPtrChecking, rp ReadyProvider, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
@@ -1272,7 +1273,7 @@ func (fd *FileData) undupChildrenInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.tree.readyHelper(
-		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1289,7 +1290,7 @@ func (fd *FileData) undupChildrenInCopy(ctx context.Context,
 // It adds all readied blocks to the provided `bps`.  It returns the
 // BlockInfos for all non-leaf children.
 func (fd *FileData) readyNonLeafBlocksInCopy(ctx context.Context,
-	bcache BlockCache, bops BlockOps, bps blockPutState,
+	bcache BlockCacheWithPtrChecking, rp ReadyProvider, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
@@ -1309,7 +1310,7 @@ func (fd *FileData) readyNonLeafBlocksInCopy(ctx context.Context,
 	}
 
 	newInfos, err := fd.tree.readyHelper(
-		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
+		ctx, fd.tree.file.Tlf, bcache, rp, bps, pfr, nil)
 	if err != nil {
 		return nil, err
 	}
