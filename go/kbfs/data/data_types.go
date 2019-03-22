@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -38,6 +39,8 @@ const (
 	MaxBlockSizeBytesDefault = 512 << 10
 	// Max supported size of a directory entry name.
 	maxNameBytesDefault = 255
+	// The timeout for any background task.
+	backgroundTaskTimeout = 1 * time.Minute
 )
 
 // DataVer is the type of a version for marshalled KBFS data

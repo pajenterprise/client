@@ -790,42 +790,6 @@ func ForceQuotaReclamationForTesting(config Config,
 	return nil
 }
 
-// TestClock returns a set time as the current time.
-type TestClock struct {
-	l sync.Mutex
-	t time.Time
-}
-
-func newTestClockNow() *TestClock {
-	return &TestClock{t: time.Now()}
-}
-
-func newTestClockAndTimeNow() (*TestClock, time.Time) {
-	t0 := time.Now()
-	return &TestClock{t: t0}, t0
-}
-
-// Now implements the Clock interface for TestClock.
-func (tc *TestClock) Now() time.Time {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	return tc.t
-}
-
-// Set sets the test clock time.
-func (tc *TestClock) Set(t time.Time) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = t
-}
-
-// Add adds to the test clock time.
-func (tc *TestClock) Add(d time.Duration) {
-	tc.l.Lock()
-	defer tc.l.Unlock()
-	tc.t = tc.t.Add(d)
-}
-
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
 func CheckConfigAndShutdown(

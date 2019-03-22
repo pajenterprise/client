@@ -270,26 +270,6 @@ func (e BlockDecodeError) Error() string {
 	return fmt.Sprintf("Decode error for a block: %v", e.decodeErr)
 }
 
-// BadDataError indicates that KBFS is storing corrupt data for a block.
-type BadDataError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for BadDataError
-func (e BadDataError) Error() string {
-	return fmt.Sprintf("Bad data for block %v", e.ID)
-}
-
-// NoSuchBlockError indicates that a block for the associated ID doesn't exist.
-type NoSuchBlockError struct {
-	ID kbfsblock.ID
-}
-
-// Error implements the error interface for NoSuchBlockError
-func (e NoSuchBlockError) Error() string {
-	return fmt.Sprintf("Couldn't get block %v", e.ID)
-}
-
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
 type BadCryptoError struct {
 	ID kbfsblock.ID
@@ -544,29 +524,6 @@ func (e EmptyNameError) Error() string {
 	return fmt.Sprintf("Cannot use empty name for %v", e.ref)
 }
 
-// PaddedBlockReadError occurs if the number of bytes read do not
-// equal the number of bytes specified.
-type PaddedBlockReadError struct {
-	ActualLen   int
-	ExpectedLen int
-}
-
-// Error implements the error interface of PaddedBlockReadError.
-func (e PaddedBlockReadError) Error() string {
-	return fmt.Sprintf("Reading block data out of padded block resulted in %d bytes, expected %d",
-		e.ActualLen, e.ExpectedLen)
-}
-
-// NotDirectFileBlockError indicates that a direct file block was
-// expected, but something else (e.g., an indirect file block) was
-// given instead.
-type NotDirectFileBlockError struct {
-}
-
-func (e NotDirectFileBlockError) Error() string {
-	return fmt.Sprintf("Unexpected block type; expected a direct file block")
-}
-
 // KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
 type KeyHalfMismatchError struct {
 	Expected kbfscrypto.TLFCryptKeyServerHalfID
@@ -763,15 +720,6 @@ func (e IncompatibleHandleError) Error() string {
 		e.oldName, e.partiallyResolvedOldName, e.newName)
 }
 
-// ShutdownHappenedError indicates that shutdown has happened.
-type ShutdownHappenedError struct {
-}
-
-// Error implements the error interface for ShutdownHappenedError.
-func (e ShutdownHappenedError) Error() string {
-	return "Shutdown happened"
-}
-
 // UnmergedError indicates that fbo is on an unmerged local revision
 type UnmergedError struct {
 }
@@ -846,15 +794,6 @@ type blockNonExistentError struct {
 
 func (e blockNonExistentError) Error() string {
 	return fmt.Sprintf("block %s does not exist", e.id)
-}
-
-type cachePutCacheFullError struct {
-	blockID kbfsblock.ID
-}
-
-func (e cachePutCacheFullError) Error() string {
-	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
-		e.blockID)
 }
 
 // NoMergedMDError indicates that no MDs for this folder have been

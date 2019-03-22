@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 )
@@ -127,27 +126,6 @@ type BlockSplitter interface {
 	SplitDirIfNeeded(block *DirBlock) ([]*DirBlock, *StringOffset)
 }
 
-// CryptoPure contains cryptographic methods that can be done locally.
-type CryptoPure interface {
-	// MakeRandomTlfID generates a dir ID using a CSPRNG.
-	MakeRandomTlfID(t tlf.Type) (tlf.ID, error)
-
-	// MakeRandomBranchID generates a per-device branch ID using a
-	// CSPRNG.  It will not return LocalSquashBranchID or
-	// kbfsmd.NullBranchID.
-	MakeRandomBranchID() (kbfsmd.BranchID, error)
-
-	// MakeTemporaryBlockID generates a temporary block ID using a
-	// CSPRNG. This is used for indirect blocks before they're
-	// committed to the server.
-	MakeTemporaryBlockID() (kbfsblock.ID, error)
-
-	// MakeRefNonce generates a block reference nonce using a
-	// CSPRNG. This is used for distinguishing different references to
-	// the same BlockID.
-	MakeBlockRefNonce() (kbfsblock.RefNonce, error)
-}
-
 // BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
@@ -169,7 +147,9 @@ type BlockCacheSimple interface {
 		lifetime BlockCacheLifetime) error
 }
 
-type BlockCacheWithPtrChecking interface {
+// BlockCache specifies the interface of BlockCacheSimple, and also more
+// advanced and internal methods.
+type BlockCache interface {
 	BlockCacheSimple
 	// CheckForKnownPtr sees whether this cache has a transient
 	// entry for the given file block, which must be a direct file
@@ -178,6 +158,29 @@ type BlockCacheWithPtrChecking interface {
 	// If no ID is known, return an uninitialized BlockPointer and
 	// a nil error.
 	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
+	// DeleteTransient removes the transient entry for the given
+	// ID from the cache, as well as any cached IDs so the block
+	// won't be reused.
+	DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error
+	// Delete removes the permanent entry for the non-dirty block
+	// associated with the given block ID from the cache.  No
+	// error is returned if no block exists for the given ID.
+	DeletePermanent(id kbfsblock.ID) error
+	// DeleteKnownPtr removes the cached ID for the given file
+	// block. It does not remove the block itself.
+	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
+	// GetWithLifetime retrieves a block from the cache, along with
+	// the block's lifetime.
+	GetWithLifetime(ptr BlockPointer) (
+		block Block, lifetime BlockCacheLifetime, err error)
+
+	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
+	// cache.
+	SetCleanBytesCapacity(capacity uint64)
+
+	// GetCleanBytesCapacity atomically gets clean bytes capacity for block
+	// cache.
+	GetCleanBytesCapacity() (capacity uint64)
 }
 
 type IsDirtyProvider interface {

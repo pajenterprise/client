@@ -29,9 +29,9 @@ type dirData struct {
 	tree   *blockTree
 }
 
-func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
-	crypto CryptoPure, bsplit BlockSplitter, kmd libkey.KeyMetadata,
-	getter dirBlockGetter, cacher dirtyBlockCacher,
+func newDirData(
+	dir path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
+	kmd libkey.KeyMetadata, getter dirBlockGetter, cacher dirtyBlockCacher,
 	log logger.Logger) *dirData {
 	dd := &dirData{
 		getter: getter,
@@ -39,7 +39,6 @@ func newDirData(dir path, chargedTo keybase1.UserOrTeamID,
 	dd.tree = &blockTree{
 		file:      dir,
 		chargedTo: chargedTo,
-		crypto:    crypto,
 		kmd:       kmd,
 		bsplit:    bsplit,
 		getter:    dd.blockGetter,
@@ -158,7 +157,7 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 // indirect block that becomes the parent.
 func (dd *dirData) createIndirectBlock(ctx context.Context, dver DataVer) (
 	BlockWithPtrs, error) {
-	newID, err := dd.tree.crypto.MakeTemporaryBlockID()
+	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +333,7 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) (
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (dd *dirData) ready(ctx context.Context, id tlf.ID,
-	bcache BlockCacheWithPtrChecking, dirtyBcache IsDirtyProvider,
+	bcache BlockCache, dirtyBcache IsDirtyProvider,
 	rp ReadyProvider, bps blockPutState,
 	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
 	return dd.tree.ready(

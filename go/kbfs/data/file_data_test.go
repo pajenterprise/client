@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -31,7 +30,6 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	id := tlf.FakeID(1, tlf.Private)
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
 	kmd := emptyKeyMetadata{id, 1}
 
@@ -61,8 +59,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	}
 
 	fd := NewFileData(
-		file, chargedTo, crypto, bsplit, kmd, getter, cacher,
-		logger.NewTestLogger(t))
+		file, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
 	df := newDirtyFile(file, dirtyBcache)
 	return fd, cleanCache, dirtyBcache, df
 }
@@ -369,7 +366,6 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 
 	// Now fill in any parents.
 	numLevels := 1
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	for len(prevChildren) != 1 {
 		prevChildIndex := 0
 		var level []*FileBlock
@@ -391,7 +387,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 				dt = IndirectBlock
 			}
 			for j, child := range children {
-				id, err := crypto.MakeTemporaryBlockID()
+				id, err := kbfsblock.MakeTemporaryID()
 				require.NoError(t, err)
 				ptr := BlockPointer{
 					ID:         id,

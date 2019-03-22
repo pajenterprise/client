@@ -4,7 +4,11 @@
 
 package data
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/keybase/client/go/kbfs/kbfsblock"
+)
 
 // NameExistsError indicates that the user tried to create an entry
 // for a name that already existed in a subdirectory.
@@ -24,4 +28,52 @@ type BadSplitError struct {
 // Error implements the error interface for BadSplitError
 func (e BadSplitError) Error() string {
 	return "Unexpected bad block split"
+}
+
+// BadDataError indicates that KBFS is storing corrupt data for a block.
+type BadDataError struct {
+	ID kbfsblock.ID
+}
+
+// Error implements the error interface for BadDataError
+func (e BadDataError) Error() string {
+	return fmt.Sprintf("Bad data for block %v", e.ID)
+}
+
+// NoSuchBlockError indicates that a block for the associated ID doesn't exist.
+type NoSuchBlockError struct {
+	ID kbfsblock.ID
+}
+
+// Error implements the error interface for NoSuchBlockError
+func (e NoSuchBlockError) Error() string {
+	return fmt.Sprintf("Couldn't get block %v", e.ID)
+}
+
+// NotDirectFileBlockError indicates that a direct file block was
+// expected, but something else (e.g., an indirect file block) was
+// given instead.
+type NotDirectFileBlockError struct {
+}
+
+func (e NotDirectFileBlockError) Error() string {
+	return fmt.Sprintf("Unexpected block type; expected a direct file block")
+}
+
+type cachePutCacheFullError struct {
+	blockID kbfsblock.ID
+}
+
+func (e cachePutCacheFullError) Error() string {
+	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
+		e.blockID)
+}
+
+// ShutdownHappenedError indicates that shutdown has happened.
+type ShutdownHappenedError struct {
+}
+
+// Error implements the error interface for ShutdownHappenedError.
+func (e ShutdownHappenedError) Error() string {
+	return "Shutdown happened"
 }

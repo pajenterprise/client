@@ -12,7 +12,6 @@ import (
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
-	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -31,7 +30,6 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	id := tlf.FakeID(1, tlf.Private)
 	dir := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "dir"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack(), makeBlockCryptV1())
 	bsplit := &BlockSplitterSimple{10, maxPtrsPerBlock, 10, numDirEntries}
 	kmd := emptyKeyMetadata{id, 1}
 
@@ -61,8 +59,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	}
 
 	dd := newDirData(
-		dir, chargedTo, crypto, bsplit, kmd, getter, cacher,
-		logger.NewTestLogger(t))
+		dir, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
 	return dd, cleanCache, dirtyBcache
 }
 

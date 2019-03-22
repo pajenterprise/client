@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"testing"
@@ -14,13 +14,8 @@ import (
 // with extensions registered.
 func testStructUnknownFields(t *testing.T, sFuture kbfscodec.FutureStruct) {
 	cFuture := kbfscodec.NewMsgpack()
-	registerOpsFuture(cFuture)
-
 	cCurrent := kbfscodec.NewMsgpack()
-	RegisterOps(cCurrent)
-
 	cCurrentKnownOnly := kbfscodec.NewMsgpackNoUnknownFields()
-	RegisterOps(cCurrentKnownOnly)
 
 	kbfscodec.TestStructUnknownFields(
 		t, cFuture, cCurrent, cCurrentKnownOnly, sFuture)

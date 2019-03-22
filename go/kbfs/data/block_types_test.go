@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
+	"crypto/rand"
 	"sync"
 	"testing"
 
@@ -12,7 +13,36 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/stretchr/testify/require"
 )
+
+const testFakeBlockSize = uint32(150)
+
+func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
+	buf := make([]byte, 16)
+	_, err := rand.Read(buf)
+	require.NoError(t, err)
+	block := &FileBlock{
+		CommonBlock: CommonBlock{
+			cachedEncodedSize: testFakeBlockSize,
+		},
+		Contents: buf,
+	}
+	if doHash {
+		_ = block.GetHash()
+	}
+	return block
+}
+
+func makeFakeFileBlockWithIPtrs(iptrs []IndirectFilePtr) *FileBlock {
+	return &FileBlock{
+		CommonBlock: CommonBlock{
+			IsInd:             true,
+			cachedEncodedSize: testFakeBlockSize,
+		},
+		IPtrs: iptrs,
+	}
+}
 
 func makeFakeBlockContext(t *testing.T) kbfsblock.Context {
 	return kbfsblock.MakeContext(

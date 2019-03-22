@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package data
 
 import (
 	"fmt"
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
@@ -110,7 +111,7 @@ const (
 // future it might make sense to decrease the buffer capacity, rather
 // than resetting it to the minimum?
 type DirtyBlockCacheStandard struct {
-	clock Clock
+	clock idutil.Clock
 	log   logger.Logger
 	reqWg sync.WaitGroup
 
@@ -157,8 +158,8 @@ type DirtyBlockCacheStandard struct {
 // instance.  The min and max buffer capacities define the possible
 // range of how many bytes we'll try to sync in any one sync, and the
 // start size defines the initial buffer size.
-func NewDirtyBlockCacheStandard(clock Clock,
-	log logger.Logger, minSyncBufCap int64,
+func NewDirtyBlockCacheStandard(
+	clock idutil.Clock, log logger.Logger, minSyncBufCap int64,
 	maxSyncBufCap int64, startSyncBufCap int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
 		clock:              clock,

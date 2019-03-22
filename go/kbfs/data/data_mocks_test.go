@@ -6,7 +6,6 @@ package data
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	data "github.com/keybase/client/go/kbfs/data"
 	reflect "reflect"
 )
 
@@ -34,7 +33,7 @@ func (m *MockBlockWithPtrs) EXPECT() *MockBlockWithPtrsMockRecorder {
 }
 
 // AppendNewIndirectPtr mocks base method
-func (m *MockBlockWithPtrs) AppendNewIndirectPtr(arg0 data.BlockPointer, arg1 data.Offset) {
+func (m *MockBlockWithPtrs) AppendNewIndirectPtr(arg0 BlockPointer, arg1 Offset) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AppendNewIndirectPtr", arg0, arg1)
 }
@@ -72,10 +71,10 @@ func (mr *MockBlockWithPtrsMockRecorder) ClearIndirectPtrSize(arg0 interface{}) 
 }
 
 // DataVersion mocks base method
-func (m *MockBlockWithPtrs) DataVersion() data.DataVer {
+func (m *MockBlockWithPtrs) DataVersion() DataVer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DataVersion")
-	ret0, _ := ret[0].(data.DataVer)
+	ret0, _ := ret[0].(DataVer)
 	return ret0
 }
 
@@ -86,10 +85,10 @@ func (mr *MockBlockWithPtrsMockRecorder) DataVersion() *gomock.Call {
 }
 
 // FirstOffset mocks base method
-func (m *MockBlockWithPtrs) FirstOffset() data.Offset {
+func (m *MockBlockWithPtrs) FirstOffset() Offset {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FirstOffset")
-	ret0, _ := ret[0].(data.Offset)
+	ret0, _ := ret[0].(Offset)
 	return ret0
 }
 
@@ -114,11 +113,11 @@ func (mr *MockBlockWithPtrsMockRecorder) GetEncodedSize() *gomock.Call {
 }
 
 // IndirectPtr mocks base method
-func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (data.BlockInfo, data.Offset) {
+func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (BlockInfo, Offset) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IndirectPtr", arg0)
-	ret0, _ := ret[0].(data.BlockInfo)
-	ret1, _ := ret[1].(data.Offset)
+	ret0, _ := ret[0].(BlockInfo)
+	ret1, _ := ret[1].(Offset)
 	return ret0, ret1
 }
 
@@ -157,10 +156,10 @@ func (mr *MockBlockWithPtrsMockRecorder) IsTail() *gomock.Call {
 }
 
 // NewEmptier mocks base method
-func (m *MockBlockWithPtrs) NewEmptier() func() data.Block {
+func (m *MockBlockWithPtrs) NewEmptier() func() Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmptier")
-	ret0, _ := ret[0].(func() data.Block)
+	ret0, _ := ret[0].(func() Block)
 	return ret0
 }
 
@@ -171,10 +170,10 @@ func (mr *MockBlockWithPtrsMockRecorder) NewEmptier() *gomock.Call {
 }
 
 // NewEmpty mocks base method
-func (m *MockBlockWithPtrs) NewEmpty() data.Block {
+func (m *MockBlockWithPtrs) NewEmpty() Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmpty")
-	ret0, _ := ret[0].(data.Block)
+	ret0, _ := ret[0].(Block)
 	return ret0
 }
 
@@ -199,7 +198,7 @@ func (mr *MockBlockWithPtrsMockRecorder) NumIndirectPtrs() *gomock.Call {
 }
 
 // OffsetExceedsData mocks base method
-func (m *MockBlockWithPtrs) OffsetExceedsData(arg0, arg1 data.Offset) bool {
+func (m *MockBlockWithPtrs) OffsetExceedsData(arg0, arg1 Offset) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OffsetExceedsData", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -213,7 +212,7 @@ func (mr *MockBlockWithPtrsMockRecorder) OffsetExceedsData(arg0, arg1 interface{
 }
 
 // Set mocks base method
-func (m *MockBlockWithPtrs) Set(arg0 data.Block) {
+func (m *MockBlockWithPtrs) Set(arg0 Block) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Set", arg0)
 }
@@ -237,7 +236,7 @@ func (mr *MockBlockWithPtrsMockRecorder) SetEncodedSize(arg0 interface{}) *gomoc
 }
 
 // SetIndirectPtrInfo mocks base method
-func (m *MockBlockWithPtrs) SetIndirectPtrInfo(arg0 int, arg1 data.BlockInfo) {
+func (m *MockBlockWithPtrs) SetIndirectPtrInfo(arg0 int, arg1 BlockInfo) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrInfo", arg0, arg1)
 }
@@ -249,7 +248,7 @@ func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrInfo(arg0, arg1 interface
 }
 
 // SetIndirectPtrOff mocks base method
-func (m *MockBlockWithPtrs) SetIndirectPtrOff(arg0 int, arg1 data.Offset) {
+func (m *MockBlockWithPtrs) SetIndirectPtrOff(arg0 int, arg1 Offset) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrOff", arg0, arg1)
 }
@@ -261,7 +260,7 @@ func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrOff(arg0, arg1 interface{
 }
 
 // SetIndirectPtrType mocks base method
-func (m *MockBlockWithPtrs) SetIndirectPtrType(arg0 int, arg1 data.BlockDirectType) {
+func (m *MockBlockWithPtrs) SetIndirectPtrType(arg0 int, arg1 BlockDirectType) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrType", arg0, arg1)
 }
@@ -273,7 +272,7 @@ func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrType(arg0, arg1 interface
 }
 
 // SwapIndirectPtrs mocks base method
-func (m *MockBlockWithPtrs) SwapIndirectPtrs(arg0 int, arg1 data.BlockWithPtrs, arg2 int) {
+func (m *MockBlockWithPtrs) SwapIndirectPtrs(arg0 int, arg1 BlockWithPtrs, arg2 int) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SwapIndirectPtrs", arg0, arg1, arg2)
 }
@@ -285,10 +284,10 @@ func (mr *MockBlockWithPtrsMockRecorder) SwapIndirectPtrs(arg0, arg1, arg2 inter
 }
 
 // ToCommonBlock mocks base method
-func (m *MockBlockWithPtrs) ToCommonBlock() *data.CommonBlock {
+func (m *MockBlockWithPtrs) ToCommonBlock() *CommonBlock {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ToCommonBlock")
-	ret0, _ := ret[0].(*data.CommonBlock)
+	ret0, _ := ret[0].(*CommonBlock)
 	return ret0
 }
 

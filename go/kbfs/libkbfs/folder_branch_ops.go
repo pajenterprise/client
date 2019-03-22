@@ -80,8 +80,6 @@ const (
 	maxRetriesOnRecoverableErrors = 10
 	// When the number of dirty bytes exceeds this level, force a sync.
 	dirtyBytesThreshold = maxParallelBlockPuts * MaxBlockSizeBytesDefault
-	// The timeout for any background task.
-	backgroundTaskTimeout = 1 * time.Minute
 	// If it's been more than this long since our last update, check
 	// the current head before downloading all of the new revisions.
 	fastForwardTimeThresh = 15 * time.Minute

@@ -15,9 +15,9 @@ import (
 // ReadyBlock is a thin wrapper around ReadyProvider.Ready() that
 // handles checking for duplicates.
 func ReadyBlock(
-	ctx context.Context, bcache BlockCacheWithPtrChecking, rp ReadyProvider,
-	crypto CryptoPure, kmd libkey.KeyMetadata, block Block,
-	chargedTo keybase1.UserOrTeamID, bType keybase1.BlockType) (
+	ctx context.Context, bcache BlockCache, rp ReadyProvider,
+	kmd libkey.KeyMetadata, block Block, chargedTo keybase1.UserOrTeamID,
+	bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
 	directType := DirectBlock
@@ -40,7 +40,7 @@ func ReadyBlock(
 	}
 
 	if ptr.IsInitialized() {
-		ptr.RefNonce, err = crypto.MakeBlockRefNonce()
+		ptr.RefNonce, err = kbfsblock.MakeRefNonce()
 		if err != nil {
 			return BlockInfo{}, 0, ReadyBlockData{}, err
 		}

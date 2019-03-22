@@ -36,7 +36,6 @@ type dirtyBlockCacher func(
 type blockTree struct {
 	file      path
 	chargedTo keybase1.UserOrTeamID
-	crypto    CryptoPure
 	kmd       libkey.KeyMetadata
 	bsplit    BlockSplitter
 	getter    blockGetterFn
@@ -669,7 +668,7 @@ func (bt *blockTree) newRightBlock(
 		parentPtr = parentBlocks[lowestAncestorWithRoom-1].childBlockPtr()
 	}
 	for i := lowestAncestorWithRoom; i < len(parentBlocks); i++ {
-		newRID, err := bt.crypto.MakeTemporaryBlockID()
+		newRID, err := kbfsblock.MakeTemporaryID()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1009,7 +1008,7 @@ type makeSyncFunc func(ptr BlockPointer) func() error
 // block info from any readied block to its corresponding old block
 // pointer.
 func (bt *blockTree) readyHelper(
-	ctx context.Context, id tlf.ID, bcache BlockCacheWithPtrChecking,
+	ctx context.Context, id tlf.ID, bcache BlockCache,
 	rp ReadyProvider, bps blockPutState,
 	pathsFromRoot [][]parentBlockAndChildIndex, makeSync makeSyncFunc) (
 	map[BlockInfo]BlockPointer, error) {
@@ -1034,7 +1033,7 @@ func (bt *blockTree) readyHelper(
 			}
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, rp, bt.crypto, bt.kmd, pb.pblock,
+				ctx, bcache, rp, bt.kmd, pb.pblock,
 				bt.chargedTo, bt.rootBlockPointer().GetBlockType())
 			if err != nil {
 				return nil, err
@@ -1075,7 +1074,7 @@ func (bt *blockTree) readyHelper(
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (bt *blockTree) ready(
-	ctx context.Context, id tlf.ID, bcache BlockCacheWithPtrChecking,
+	ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache IsDirtyProvider, rp ReadyProvider, bps blockPutState,
 	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
 	map[BlockInfo]BlockPointer, error) {

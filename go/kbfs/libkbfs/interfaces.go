@@ -877,35 +877,6 @@ type KeyCache interface {
 	PutTLFCryptKey(tlf.ID, kbfsmd.KeyGen, kbfscrypto.TLFCryptKey) error
 }
 
-// BlockCache specifies the interface of BlockCacheSimple, and also more
-// advanced and internal methods.
-type BlockCache interface {
-	data.BlockCacheWithPtrChecking
-	// DeleteTransient removes the transient entry for the given
-	// ID from the cache, as well as any cached IDs so the block
-	// won't be reused.
-	DeleteTransient(id kbfsblock.ID, tlf tlf.ID) error
-	// Delete removes the permanent entry for the non-dirty block
-	// associated with the given block ID from the cache.  No
-	// error is returned if no block exists for the given ID.
-	DeletePermanent(id kbfsblock.ID) error
-	// DeleteKnownPtr removes the cached ID for the given file
-	// block. It does not remove the block itself.
-	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithLifetime retrieves a block from the cache, along with
-	// the block's lifetime.
-	GetWithLifetime(ptr BlockPointer) (
-		block Block, lifetime BlockCacheLifetime, err error)
-
-	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
-	// cache.
-	SetCleanBytesCapacity(capacity uint64)
-
-	// GetCleanBytesCapacity atomically gets clean bytes capacity for block
-	// cache.
-	GetCleanBytesCapacity() (capacity uint64)
-}
-
 // DiskBlockCacheType specifies a type of an on-disk block cache.
 type DiskBlockCacheType int
 

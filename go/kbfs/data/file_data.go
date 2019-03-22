@@ -33,8 +33,9 @@ type FileData struct {
 
 // NewFileData makes a new file data object for the given `file`
 // within the given `kmd`.
-func NewFileData(file path, chargedTo keybase1.UserOrTeamID, crypto CryptoPure,
-	bsplit BlockSplitter, kmd libkey.KeyMetadata, getter FileBlockGetter,
+func NewFileData(
+	file path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
+	kmd libkey.KeyMetadata, getter FileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger) *FileData {
 	fd := &FileData{
 		getter: getter,
@@ -42,7 +43,6 @@ func NewFileData(file path, chargedTo keybase1.UserOrTeamID, crypto CryptoPure,
 	fd.tree = &blockTree{
 		file:      file,
 		chargedTo: chargedTo,
-		crypto:    crypto,
 		kmd:       kmd,
 		bsplit:    bsplit,
 		getter:    fd.blockGetter,
@@ -307,7 +307,7 @@ func (fd *FileData) getBytes(ctx context.Context,
 // indirect block that becomes the parent.
 func (fd *FileData) createIndirectBlock(
 	ctx context.Context, df *dirtyFile, dver DataVer) (*FileBlock, error) {
-	newID, err := fd.tree.crypto.MakeTemporaryBlockID()
+	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return nil, err
 	}
@@ -991,7 +991,7 @@ func (fd *FileData) split(ctx context.Context, id tlf.ID,
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (fd *FileData) ready(ctx context.Context, id tlf.ID,
-	bcache BlockCacheWithPtrChecking, dirtyBcache IsDirtyProvider,
+	bcache BlockCache, dirtyBcache IsDirtyProvider,
 	rp ReadyProvider, bps blockPutState, topBlock *FileBlock, df *dirtyFile) (
 	map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
@@ -1105,7 +1105,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		}
 
 		newTopPtr = fd.rootBlockPointer()
-		newTopPtr.RefNonce, err = fd.tree.crypto.MakeBlockRefNonce()
+		newTopPtr.RefNonce, err = kbfsblock.MakeRefNonce()
 		if err != nil {
 			return zeroPtr, nil, err
 		}
@@ -1159,7 +1159,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 				if level == leafLevel {
 					// Generate a new nonce for each indirect pointer
 					// to a leaf.
-					iptr.RefNonce, err = fd.tree.crypto.MakeBlockRefNonce()
+					iptr.RefNonce, err = kbfsblock.MakeRefNonce()
 					if err != nil {
 						return zeroPtr, nil, err
 					}
@@ -1169,7 +1169,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 				} else {
 					// Generate a new random ID for each indirect
 					// pointer to an indirect block.
-					newID, err := fd.tree.crypto.MakeTemporaryBlockID()
+					newID, err := kbfsblock.MakeTemporaryID()
 					if err != nil {
 						return zeroPtr, nil, err
 					}
@@ -1205,7 +1205,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 
 	// Finally, make a new ID for the top block and cache it.
 	newTopPtr = fd.rootBlockPointer()
-	newID, err := fd.tree.crypto.MakeTemporaryBlockID()
+	newID, err := kbfsblock.MakeTemporaryID()
 	if err != nil {
 		return zeroPtr, nil, err
 	}
@@ -1239,7 +1239,7 @@ func (fd *FileData) deepCopy(ctx context.Context, dataVer DataVer) (
 // ones that were deduplicated and the ones that weren't.  It returns
 // the BlockInfos for all children.
 func (fd *FileData) undupChildrenInCopy(ctx context.Context,
-	bcache BlockCacheWithPtrChecking, rp ReadyProvider, bps blockPutState,
+	bcache BlockCache, rp ReadyProvider, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
@@ -1290,7 +1290,7 @@ func (fd *FileData) undupChildrenInCopy(ctx context.Context,
 // It adds all readied blocks to the provided `bps`.  It returns the
 // BlockInfos for all non-leaf children.
 func (fd *FileData) readyNonLeafBlocksInCopy(ctx context.Context,
-	bcache BlockCacheWithPtrChecking, rp ReadyProvider, bps blockPutState,
+	bcache BlockCache, rp ReadyProvider, bps blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil

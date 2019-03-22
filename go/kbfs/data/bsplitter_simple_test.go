@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -153,8 +154,7 @@ func TestBsplitterOverhead(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Encoding block failed: %v", err)
 	}
-	crypto := MakeCryptoCommon(codec, makeBlockCryptV1())
-	paddedBlock, err := crypto.padBlock(encodedBlock)
+	paddedBlock, err := kbfscrypto.PadBlock(encodedBlock)
 	if err != nil {
 		t.Fatalf("Padding block failed: %v", err)
 	}
