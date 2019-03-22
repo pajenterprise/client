@@ -46,7 +46,7 @@ func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
 func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
-	bsplit BlockSplitter, tempdir string, j *mdJournal) {
+	bsplit data.BlockSplitter, tempdir string, j *mdJournal) {
 	codec = kbfscodec.NewMsgpack()
 	crypto = MakeCryptoCommon(codec, makeBlockCryptV1())
 
@@ -75,7 +75,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	log := logger.NewTestLogger(t)
 	ctx := context.Background()
 	j, err = makeMDJournal(
-		ctx, uid, verifyingKey, codec, crypto, wallClock{}, nil,
+		ctx, uid, verifyingKey, codec, crypto, data.WallClock{}, nil,
 		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log)
 	require.NoError(t, err)
 
@@ -155,7 +155,7 @@ func putMDRangeHelper(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 
 func putMDRange(t testing.TB, ver kbfsmd.MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, firstRevision kbfsmd.Revision,
+	bsplit data.BlockSplitter, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mdCount int, j *mdJournal) ([]*RootMetadata, kbfsmd.ID) {
 	return putMDRangeHelper(t, ver, tlfID, signer, firstRevision,
 		firstPrevRoot, mdCount, j.uid,

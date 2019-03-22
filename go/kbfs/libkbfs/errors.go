@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -36,7 +37,7 @@ func (e WrapError) String() string {
 // InvalidBlockRefError indicates an invalid block reference was
 // encountered.
 type InvalidBlockRefError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 func (e InvalidBlockRefError) Error() string {
@@ -45,7 +46,7 @@ func (e InvalidBlockRefError) Error() string {
 
 // InvalidPathError indicates an invalid path was encountered.
 type InvalidPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidPathError.
@@ -56,7 +57,7 @@ func (e InvalidPathError) Error() string {
 // InvalidParentPathError indicates a path without a valid parent was
 // encountered.
 type InvalidParentPathError struct {
-	p path
+	p data.Path
 }
 
 // Error implements the error interface for InvalidParentPathError.
@@ -214,9 +215,9 @@ func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotFileBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotFileBlockError) Error() string {
@@ -228,9 +229,9 @@ func (e NotFileBlockError) Error() string {
 //
 // ptr and branch should be filled in, but p may be empty.
 type NotDirBlockError struct {
-	ptr    BlockPointer
-	branch BranchName
-	p      path
+	ptr    data.BlockPointer
+	branch data.BranchName
+	p      data.Path
 }
 
 func (e NotDirBlockError) Error() string {
@@ -240,7 +241,7 @@ func (e NotDirBlockError) Error() string {
 // NotFileError indicates that the user tried to perform a
 // file-specific operation on something that isn't a file.
 type NotFileError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotFileError
@@ -251,7 +252,7 @@ func (e NotFileError) Error() string {
 // NotDirError indicates that the user tried to perform a
 // dir-specific operation on something that isn't a directory.
 type NotDirError struct {
-	path path
+	path data.Path
 }
 
 // Error implements the error interface for NotDirError
@@ -334,7 +335,7 @@ func (e NoSuchMDError) Error() string {
 // InvalidDataVersionError indicates that an invalid data version was
 // used.
 type InvalidDataVersionError struct {
-	DataVer DataVer
+	DataVer data.DataVer
 }
 
 // Error implements the error interface for InvalidDataVersionError.
@@ -346,8 +347,8 @@ func (e InvalidDataVersionError) Error() string {
 // been written using a new data version that our client doesn't
 // understand.
 type NewDataVersionError struct {
-	path    path
-	DataVer DataVer
+	path    data.Path
+	DataVer data.DataVer
 }
 
 // Error implements the error interface for NewDataVersionError.
@@ -400,7 +401,7 @@ func (e TooLowByteCountError) Error() string {
 // InconsistentEncodedSizeError is raised when a dirty block has a
 // non-zero encoded size.
 type InconsistentEncodedSizeError struct {
-	info BlockInfo
+	info data.BlockInfo
 }
 
 // Error implements the error interface for InconsistentEncodedSizeError
@@ -481,8 +482,8 @@ func (e NoKeysError) Error() string {
 // WrongOpsError indicates that an unexpected path got passed into a
 // FolderBranchOps instance
 type WrongOpsError struct {
-	nodeFB FolderBranch
-	opsFB  FolderBranch
+	nodeFB data.FolderBranch
+	opsFB  data.FolderBranch
 }
 
 // Error implements the error interface for WrongOpsError.
@@ -494,7 +495,7 @@ func (e WrongOpsError) Error() string {
 // NodeNotFoundError indicates that we tried to find a node for the
 // given BlockPointer and failed.
 type NodeNotFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NodeNotFoundError.
@@ -505,7 +506,7 @@ func (e NodeNotFoundError) Error() string {
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
-	parent BlockRef
+	parent data.BlockRef
 }
 
 // Error implements the error interface for ParentNodeNotFoundError.
@@ -516,7 +517,7 @@ func (e ParentNodeNotFoundError) Error() string {
 // EmptyNameError indicates that the user tried to use an empty name
 // for the given BlockRef.
 type EmptyNameError struct {
-	ref BlockRef
+	ref data.BlockRef
 }
 
 // Error implements the error interface for EmptyNameError.
@@ -572,7 +573,7 @@ func (e NotPermittedWhileDirtyError) Error() string {
 // NoChainFoundError indicates that a conflict resolution chain
 // corresponding to the given pointer could not be found.
 type NoChainFoundError struct {
-	ptr BlockPointer
+	ptr data.BlockPointer
 }
 
 // Error implements the error interface for NoChainFoundError.
@@ -1020,7 +1021,7 @@ func (e NextMDNotCachedError) Error() string {
 // DiskCacheTooFullForBlockError indicates that the disk cache is too
 // full to fetch a block requested with the `StopIfFull` action type.
 type DiskCacheTooFullForBlockError struct {
-	Ptr    BlockPointer
+	Ptr    data.BlockPointer
 	Action BlockRequestAction
 }
 

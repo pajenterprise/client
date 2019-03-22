@@ -6,18 +6,13 @@ package libkbfs
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
-	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/kbfs/kbfsblock"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -68,7 +63,7 @@ type BlockChanges struct {
 	// clients have upgraded to a version that explicitly clears
 	// Info on decode, and we've verified that there's nothing
 	// else that relies on Info always being filled.
-	Info BlockInfo `codec:"p"`
+	Info data.BlockInfo `codec:"p"`
 	// An ordered list of operations completed in this update
 	Ops opsList `codec:"o,omitempty"`
 	// Estimate the number of bytes that this set of changes will take to encode
@@ -90,7 +85,7 @@ func (bc BlockChanges) Equals(other BlockChanges) bool {
 
 // AddRefBlock adds the newly-referenced block to this BlockChanges
 // and updates the size estimate.
-func (bc *BlockChanges) AddRefBlock(ptr BlockPointer) {
+func (bc *BlockChanges) AddRefBlock(ptr data.BlockPointer) {
 	if bc.sizeEstimate != 0 {
 		panic("Can't alter block changes after the size is estimated")
 	}
@@ -99,7 +94,7 @@ func (bc *BlockChanges) AddRefBlock(ptr BlockPointer) {
 
 // AddUnrefBlock adds the newly unreferenced block to this BlockChanges
 // and updates the size estimate.
-func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
+func (bc *BlockChanges) AddUnrefBlock(ptr data.BlockPointer) {
 	if bc.sizeEstimate != 0 {
 		panic("Can't alter block changes after the size is estimated")
 	}
@@ -108,7 +103,7 @@ func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
 
 // AddUpdate adds the newly updated block to this BlockChanges
 // and updates the size estimate.
-func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+func (bc *BlockChanges) AddUpdate(oldPtr data.BlockPointer, newPtr data.BlockPointer) {
 	if bc.sizeEstimate != 0 {
 		panic("Can't alter block changes after the size is estimated")
 	}
@@ -218,7 +213,7 @@ type NodeMetadata struct {
 	// node according to the last writer of the TLF.
 	// A more thorough check is possible in the future.
 	LastWriterUnverified kbname.NormalizedUsername
-	BlockInfo            BlockInfo
+	BlockInfo            data.BlockInfo
 	PrefetchStatus       PrefetchStatus
 	PrefetchProgress     *PrefetchProgress `json:",omitempty"`
 }
@@ -368,7 +363,7 @@ func PrefetchStatusFromProtocol(
 // FolderSyncEncryptedPartialPaths describes an encrypted block
 // containing the paths of a partial sync config.
 type FolderSyncEncryptedPartialPaths struct {
-	Ptr        BlockPointer
+	Ptr        data.BlockPointer
 	Buf        []byte
 	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
@@ -389,17 +384,17 @@ type syncPathList struct {
 	codec.UnknownFieldSetHandler
 }
 
-func (spl syncPathList) makeBlock(codec kbfscodec.Codec) (Block, error) {
+func (spl syncPathList) makeBlock(codec kbfscodec.Codec) (data.Block, error) {
 	buf, err := codec.Encode(spl)
 	if err != nil {
 		return nil, err
 	}
-	b := NewFileBlock().(*FileBlock)
+	b := data.NewFileBlock().(*data.FileBlock)
 	b.Contents = buf
 	return b, nil
 }
 
-func syncPathListFromBlock(codec kbfscodec.Codec, b *FileBlock) (
+func syncPathListFromBlock(codec kbfscodec.Codec, b *data.FileBlock) (
 	paths syncPathList, err error) {
 	err = codec.Decode(b.Contents, &paths)
 	if err != nil {
@@ -514,7 +509,7 @@ func (bra BlockRequestAction) prefetch() bool {
 
 // Prefetch returns true if the action indicates the block should
 // trigger a prefetch.
-func (bra BlockRequestAction) Prefetch(block Block) bool {
+func (bra BlockRequestAction) Prefetch(block data.Block) bool {
 	// When syncing, always prefetch child blocks of an indirect
 	// block, since it makes no sense to sync just part of a
 	// multi-block object.
@@ -551,7 +546,7 @@ func (bra BlockRequestAction) DeepPrefetch() bool {
 
 // ChildAction returns the action that should propagate down to any
 // children of this block.
-func (bra BlockRequestAction) ChildAction(block Block) BlockRequestAction {
+func (bra BlockRequestAction) ChildAction(block data.Block) BlockRequestAction {
 	// When syncing, always prefetch child blocks of an indirect
 	// block, since it makes no sense to sync just part of a
 	// multi-block object.

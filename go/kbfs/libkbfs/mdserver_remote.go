@@ -737,8 +737,8 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	// put request
 	arg := keybase1.PutMetadataArg{
 		MdBlock: keybase1.MDBlock{
-			Version: int(rmds.Version()),
-			Block:   rmdsBytes,
+			Version:    int(rmds.Version()),
+			data.Block: rmdsBytes,
 		},
 		LogTags:  nil,
 		Priority: priority,

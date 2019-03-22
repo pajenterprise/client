@@ -35,7 +35,7 @@ type testDiskBlockCacheConfig struct {
 	limiter DiskLimiter
 	syncedTlfGetterSetter
 	initModeGetter
-	bcache BlockCache
+	bcache data.BlockCache
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -46,7 +46,7 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		nil,
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
-		NewBlockCacheStandard(100, 100),
+		data.NewBlockCacheStandard(100, 100),
 	}
 }
 
@@ -54,7 +54,7 @@ func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 	return c.limiter
 }
 
-func (c testDiskBlockCacheConfig) BlockCache() BlockCache {
+func (c testDiskBlockCacheConfig) BlockCache() data.BlockCache {
 	return c.bcache
 }
 
@@ -151,7 +151,7 @@ func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
 	cache.Shutdown(context.Background())
 }
 
-func setupRealBlockForDiskCache(t *testing.T, ptr BlockPointer, block Block,
+func setupRealBlockForDiskCache(t *testing.T, ptr data.BlockPointer, block data.Block,
 	config diskBlockCacheConfig) ([]byte, kbfscrypto.BlockCryptKeyServerHalf) {
 	blockEncoded, err := config.Codec().Encode(block)
 	require.NoError(t, err)
@@ -161,7 +161,7 @@ func setupRealBlockForDiskCache(t *testing.T, ptr BlockPointer, block Block,
 }
 
 func setupBlockForDiskCache(t *testing.T, config diskBlockCacheConfig) (
-	BlockPointer, Block, []byte, kbfscrypto.BlockCryptKeyServerHalf) {
+	data.BlockPointer, data.Block, []byte, kbfscrypto.BlockCryptKeyServerHalf) {
 	ptr := makeRandomBlockPointer(t)
 	block := makeFakeFileBlock(t, true)
 	blockEncoded, serverHalf :=
@@ -209,7 +209,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	ptr2 := makeRandomBlockPointer(t)
 	buf, serverHalf, _, err = cache.Get(
 		ctx, tlf1, ptr2.ID, DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{ptr2.ID}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{ptr2.ID}.Error())
 	require.Equal(t, kbfscrypto.BlockCryptKeyServerHalf{}, serverHalf)
 	require.Nil(t, buf)
 
@@ -264,9 +264,9 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 
 	t.Log("Verify that only the non-deleted block is still in the cache.")
 	_, _, _, err = cache.Get(ctx, tlf1, block1Ptr.ID, DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{block1Ptr.ID}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{block1Ptr.ID}.Error())
 	_, _, _, err = cache.Get(ctx, tlf1, block2Ptr.ID, DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{block2Ptr.ID}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{block2Ptr.ID}.Error())
 	_, _, _, err = cache.Get(ctx, tlf1, block3Ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 
@@ -567,9 +567,9 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 
 	t.Log("Request a block retrieval for ptr1. " +
 		"Verify the block against the one we put in the disk block cache.")
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	ch := q.Request(
-		ctx, 1, kmd, ptr1, block, TransientEntry, BlockRequestWithPrefetch)
+		ctx, 1, kmd, ptr1, block, data.TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -944,9 +944,9 @@ func TestDiskBlockCacheMark(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, numBlocks-(2*numBlocksPerTlf-2), standardCache.numBlocks)
 	_, _, _, err = cache.Get(ctx, tlfID, ids[0], DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{ids[0]}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{ids[0]}.Error())
 	_, _, _, err = cache.Get(ctx, tlfID, ids[2], DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{ids[2]}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{ids[2]}.Error())
 	_, _, _, err = cache.Get(ctx, tlfID, ids[4], DiskBlockAnyCache)
-	require.EqualError(t, err, NoSuchBlockError{ids[4]}.Error())
+	require.EqualError(t, err, data.NoSuchBlockError{ids[4]}.Error())
 }

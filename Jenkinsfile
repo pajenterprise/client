@@ -388,6 +388,17 @@ def testGo(prefix, packagesToTest) {
       retry(5) {
         sh 'go get -u github.com/golang/mock/mockgen'
       }
+      dir('kbfs/data') {
+        retry(5) {
+          timeout(activity: true, time: 90, unit: 'SECONDS') {
+            sh '''
+              set -e -x
+              ./gen_mocks.sh
+              git diff --exit-code
+            '''
+          }
+        }
+      }
       dir('kbfs/libkbfs') {
         retry(5) {
           timeout(activity: true, time: 90, unit: 'SECONDS') {
@@ -429,7 +440,7 @@ def testGo(prefix, packagesToTest) {
           flags: '-tags fuse',
           timeout: '15m',
         ],
-        'github.com/keybase/client/go/kbfs/blocktree': [
+        'github.com/keybase/client/go/kbfs/data': [
           flags: '-race',
           timeout: '30s',
         ],

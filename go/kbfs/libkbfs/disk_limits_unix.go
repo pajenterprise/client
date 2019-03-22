@@ -18,7 +18,7 @@ import (
 func getDiskLimits(path string) (
 	availableBytes, totalBytes, availableFiles, totalFiles uint64, err error) {
 	var stat unix.Statfs_t
-	err = unix.Statfs(path, &stat)
+	err = unix.Statfs(data.Path, &stat)
 	if err != nil {
 		return 0, 0, 0, 0, errors.WithStack(err)
 	}

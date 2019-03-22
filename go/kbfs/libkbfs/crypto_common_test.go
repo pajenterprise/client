@@ -79,7 +79,7 @@ type TestBlock struct {
 	A int
 }
 
-func (TestBlock) DataVersion() DataVer {
+func (TestBlock) DataVersion() data.DataVer {
 	return FirstValidDataVer
 }
 
@@ -90,15 +90,15 @@ func (tb TestBlock) GetEncodedSize() uint32 {
 func (tb TestBlock) SetEncodedSize(size uint32) {
 }
 
-func (tb TestBlock) NewEmpty() Block {
+func (tb TestBlock) NewEmpty() data.Block {
 	return &TestBlock{}
 }
 
-func (tb TestBlock) NewEmptier() func() Block {
+func (tb TestBlock) NewEmptier() func() data.Block {
 	return tb.NewEmpty
 }
 
-func (tb *TestBlock) Set(other Block) {
+func (tb *TestBlock) Set(other data.Block) {
 	otherTb := other.(*TestBlock)
 	tb.A = otherTb.A
 }
@@ -396,13 +396,13 @@ func (tba testBlockArray) GetEncodedSize() uint32 {
 func (tba testBlockArray) SetEncodedSize(size uint32) {
 }
 
-func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
+func (testBlockArray) DataVersion() data.DataVer { return FirstValidDataVer }
 
-func (tba testBlockArray) NewEmpty() Block {
+func (tba testBlockArray) NewEmpty() data.Block {
 	return &testBlockArray{}
 }
 
-func (tba testBlockArray) NewEmptier() func() Block {
+func (tba testBlockArray) NewEmptier() func() data.Block {
 	return tba.NewEmpty
 }
 
@@ -410,7 +410,7 @@ func (tba testBlockArray) ToCommonBlock() *CommonBlock {
 	return nil
 }
 
-func (tba *testBlockArray) Set(other Block) {
+func (tba *testBlockArray) Set(other data.Block) {
 	otherTba := other.(*testBlockArray)
 	*tba = *otherTba
 }
@@ -470,7 +470,7 @@ func benchmarkEncryptBlock(b *testing.B, blockSize int) {
 	for i := 0; i < len(data); i++ {
 		data[i] = byte(i)
 	}
-	block := FileBlock{
+	block := data.FileBlock{
 		Contents: data,
 	}
 	tlfCryptKey := kbfscrypto.TLFCryptKey{}

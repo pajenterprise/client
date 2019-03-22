@@ -60,11 +60,11 @@ func (e NotDirectFileBlockError) Error() string {
 	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
-type cachePutCacheFullError struct {
+type CachePutCacheFullError struct {
 	blockID kbfsblock.ID
 }
 
-func (e cachePutCacheFullError) Error() string {
+func (e CachePutCacheFullError) Error() string {
 	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
 		e.blockID)
 }

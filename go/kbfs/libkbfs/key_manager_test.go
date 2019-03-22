@@ -180,7 +180,7 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	tlfCryptKey, err = config.KeyManager().
-		GetTLFCryptKeyForBlockDecryption(ctx, kmd, BlockPointer{})
+		GetTLFCryptKeyForBlockDecryption(ctx, kmd, data.BlockPointer{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -234,7 +234,7 @@ func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver kb
 	config.KeyCache().PutTLFCryptKey(id, 1, cachedTLFCryptKey)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
-		ctx, kmd, BlockPointer{KeyGen: 1})
+		ctx, kmd, data.BlockPointer{KeyGen: 1})
 	require.NoError(t, err)
 	require.Equal(t, cachedTLFCryptKey, tlfCryptKey)
 }
@@ -357,7 +357,7 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 		storedTLFCryptKey2)
 
 	tlfCryptKey, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
-		ctx, rmd, BlockPointer{KeyGen: 1})
+		ctx, rmd, data.BlockPointer{KeyGen: 1})
 	require.NoError(t, err)
 	require.Equal(t, storedTLFCryptKey1, tlfCryptKey)
 }
@@ -2359,7 +2359,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// Both users should see the same key.
 	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
@@ -2417,7 +2417,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(latestKeyGen)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+	rmd.data.Dir.BlockPointer = data.BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// Both users should see the same key.
 	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)

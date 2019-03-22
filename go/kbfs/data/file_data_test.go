@@ -21,14 +21,14 @@ import (
 )
 
 func setupFileDataTest(t *testing.T, maxBlockSize int64,
-	maxPtrsPerBlock int) (*FileData, BlockCache, DirtyBlockCache, *dirtyFile) {
+	maxPtrsPerBlock int) (*FileData, BlockCache, DirtyBlockCache, *DirtyFile) {
 	// Make a fake file.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
+	file := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "file"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
 	kmd := emptyKeyMetadata{id, 1}
@@ -36,7 +36,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-		_ path, _ BlockReqType) (*FileBlock, bool, error) {
+		_ Path, _ BlockReqType) (*FileBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
@@ -211,7 +211,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 			levelString)
 	}
 
-	fblock, isDirty, err := fd.getter(nil, nil, ptr, path{}, blockRead)
+	fblock, isDirty, err := fd.getter(nil, nil, ptr, Path{}, BlockRead)
 	require.NoError(t, err, levelString)
 	require.Equal(t, tfdl.dirty, isDirty, levelString)
 	require.NotNil(t, fblock, levelString)
@@ -239,7 +239,7 @@ func (tfdl testFileDataLevel) check(t *testing.T, fd *FileData,
 }
 
 func testFileDataCheckWrite(t *testing.T, fd *FileData,
-	dirtyBcache DirtyBlockCache, df *dirtyFile, data []byte, off Int64Offset,
+	dirtyBcache DirtyBlockCache, df *DirtyFile, data []byte, off Int64Offset,
 	topBlock *FileBlock, oldDe DirEntry, expectedSize uint64,
 	expectedUnrefs []BlockInfo, expectedDirtiedBytes int64,
 	expectedBytesExtended int64, expectedTopLevel testFileDataLevel) {
@@ -414,7 +414,7 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *FileData,
 	}
 
 	if numLevels > 1 {
-		fd.tree.file.path[len(fd.tree.file.path)-1].DirectType = IndirectBlock
+		fd.tree.file.Path[len(fd.tree.file.Path)-1].DirectType = IndirectBlock
 	}
 
 	cleanBcache.Put(
@@ -604,13 +604,13 @@ func TestFileDataWriteHole(t *testing.T) {
 }
 
 func testFileDataCheckTruncateExtend(t *testing.T, fd *FileData,
-	dirtyBcache DirtyBlockCache, df *dirtyFile, size uint64,
+	dirtyBcache DirtyBlockCache, df *DirtyFile, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, expectedTopLevel testFileDataLevel) {
 	// Do the extending truncate.
 	ctx := context.Background()
 
 	_, parentBlocks, _, _, _, _, err :=
-		fd.getFileBlockAtOffset(ctx, topBlock, Int64Offset(size), blockWrite)
+		fd.getFileBlockAtOffset(ctx, topBlock, Int64Offset(size), BlockWrite)
 	require.NoError(t, err)
 
 	newDe, dirtyPtrs, err := fd.truncateExtend(

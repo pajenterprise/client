@@ -6,10 +6,10 @@ package data
 
 import "time"
 
-type wallClock struct {
+type WallClock struct {
 }
 
 // Now implements the Clock interface for wallClock.
-func (wc wallClock) Now() time.Time {
+func (wc WallClock) Now() time.Time {
 	return time.Now()
 }

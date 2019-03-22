@@ -1182,12 +1182,12 @@ func (k *KeybaseServiceBase) NotifyPathUpdated(
 	func() {
 		k.lastNotificationFilenameLock.Lock()
 		defer k.lastNotificationFilenameLock.Unlock()
-		if path != k.lastPathUpdated {
-			k.lastPathUpdated = path
-			k.log.CDebugf(ctx, "Sending path updated notification for %s", path)
+		if data.Path != k.lastPathUpdated {
+			k.lastPathUpdated = data.Path
+			k.log.CDebugf(ctx, "Sending path updated notification for %s", data.Path)
 		}
 	}()
-	return k.kbfsClient.FSPathUpdate(ctx, path)
+	return k.kbfsClient.FSPathUpdate(ctx, data.Path)
 }
 
 // NotifySyncStatus implements the KeybaseService interface for
@@ -1247,7 +1247,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	}
 
 	rootNode, _, err := k.config.KBFSOps().
-		GetOrCreateRootNode(ctx, tlfHandle, MasterBranch)
+		GetOrCreateRootNode(ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
 		return err
 	}

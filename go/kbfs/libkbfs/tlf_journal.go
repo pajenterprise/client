@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
@@ -31,11 +32,11 @@ import (
 // tlfJournalConfig is the subset of the Config interface needed by
 // tlfJournal (for ease of testing).
 type tlfJournalConfig interface {
-	BlockSplitter() BlockSplitter
+	BlockSplitter() data.BlockSplitter
 	Clock() Clock
 	Codec() kbfscodec.Codec
 	Crypto() Crypto
-	BlockCache() BlockCache
+	BlockCache() data.BlockCache
 	BlockOps() BlockOps
 	MDCache() MDCache
 	MetadataVersion() kbfsmd.MetadataVer
@@ -1650,7 +1651,7 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		endEstimate = &t
 	}
 	return TLFJournalStatus{
-		Dir:             j.dir,
+		data.Dir:        j.dir,
 		BranchID:        j.mdJournal.getBranchID().String(),
 		RevisionStart:   earliestRevision,
 		RevisionEnd:     latestRevision,

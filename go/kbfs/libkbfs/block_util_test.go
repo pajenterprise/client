@@ -32,11 +32,11 @@ func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
 	// expect one call to put a block
 	id := kbfsblock.FakeID(1)
 	encData := []byte{1, 2, 3, 4}
-	blockPtr := BlockPointer{ID: id}
+	blockPtr := data.BlockPointer{ID: id}
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	readyBlockData := ReadyBlockData{
+	readyBlockData := data.ReadyBlockData{
 		buf: encData,
 	}
 
@@ -56,7 +56,7 @@ func TestBlockUtilPutIncRefSuccess(t *testing.T) {
 	id := kbfsblock.FakeID(1)
 	encData := []byte{1, 2, 3, 4}
 	nonce := kbfsblock.RefNonce([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
-	blockPtr := BlockPointer{
+	blockPtr := data.BlockPointer{
 		ID: id,
 		Context: kbfsblock.Context{
 			RefNonce: nonce,
@@ -65,7 +65,7 @@ func TestBlockUtilPutIncRefSuccess(t *testing.T) {
 
 	tlfID := tlf.FakeID(0, tlf.Private)
 
-	readyBlockData := ReadyBlockData{
+	readyBlockData := data.ReadyBlockData{
 		buf: encData,
 	}
 
@@ -84,13 +84,13 @@ func TestBlockUtilPutFail(t *testing.T) {
 	// fail the put call
 	id := kbfsblock.FakeID(1)
 	encData := []byte{1, 2, 3, 4}
-	blockPtr := BlockPointer{ID: id}
+	blockPtr := data.BlockPointer{ID: id}
 
 	expectedErr := errors.New("Fake fail")
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 
-	readyBlockData := ReadyBlockData{
+	readyBlockData := data.ReadyBlockData{
 		buf: encData,
 	}
 

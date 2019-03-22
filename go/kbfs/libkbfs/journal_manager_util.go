@@ -74,7 +74,7 @@ func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 			}
 
 			status, _, err := config.KBFSOps().FolderStatus(
-				groupCtx, FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+				groupCtx, data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch})
 			if err != nil {
 				return err
 			}

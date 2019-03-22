@@ -21,14 +21,14 @@ import (
 )
 
 func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
-	*dirData, BlockCache, DirtyBlockCache) {
+	*DirData, BlockCache, DirtyBlockCache) {
 	// Make a fake dir.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	dir := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "dir"}}}
+	dir := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "dir"}}}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	bsplit := &BlockSplitterSimple{10, maxPtrsPerBlock, 10, numDirEntries}
 	kmd := emptyKeyMetadata{id, 1}
@@ -36,7 +36,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 	cleanCache := NewBlockCacheStandard(1<<10, 1<<20)
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	getter := func(ctx context.Context, _ libkey.KeyMetadata, ptr BlockPointer,
-		_ path, _ BlockReqType) (*DirBlock, bool, error) {
+		_ Path, _ BlockReqType) (*DirBlock, bool, error) {
 		isDirty := true
 		block, err := dirtyBcache.Get(ctx, id, ptr, MasterBranch)
 		if err != nil {
@@ -58,7 +58,7 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 		return dirtyBcache.Put(ctx, id, ptr, MasterBranch, block)
 	}
 
-	dd := newDirData(
+	dd := NewDirData(
 		dir, chargedTo, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
 	return dd, cleanCache, dirtyBcache
 }
@@ -99,7 +99,7 @@ func TestDirDataGetChildren(t *testing.T) {
 	require.Equal(t, uint64(2), children["b"].Size)
 
 	t.Log("Indirect blocks")
-	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
+	dd.tree.file.Path[len(dd.tree.file.Path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -136,7 +136,7 @@ func TestDirDataGetChildren(t *testing.T) {
 }
 
 func testDirDataCheckLookup(
-	t *testing.T, ctx context.Context, dd *dirData, name string, size uint64) {
+	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
 	de, err := dd.lookup(ctx, name)
 	require.NoError(t, err)
 	require.Equal(t, size, de.Size)
@@ -161,7 +161,7 @@ func TestDirDataLookup(t *testing.T) {
 
 	t.Log("Indirect blocks")
 	addFakeDirDataEntryToBlock(topBlock, "b", 2)
-	dd.tree.file.path[len(dd.tree.file.path)-1].DirectType = IndirectBlock
+	dd.tree.file.Path[len(dd.tree.file.Path)-1].DirectType = IndirectBlock
 	newTopBlock := NewDirBlock().(*DirBlock)
 	newTopBlock.IsInd = true
 	ptr1 := BlockPointer{
@@ -195,7 +195,7 @@ func TestDirDataLookup(t *testing.T) {
 }
 
 func addFakeDirDataEntry(
-	t *testing.T, ctx context.Context, dd *dirData, name string, size uint64) {
+	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
 	_, err := dd.addEntry(ctx, name, DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
@@ -211,7 +211,7 @@ type testDirDataLeaf struct {
 }
 
 func testDirDataCheckLeafs(
-	t *testing.T, dd *dirData, cleanBcache BlockCache,
+	t *testing.T, dd *DirData, cleanBcache BlockCache,
 	dirtyBcache DirtyBlockCache, expectedLeafs []testDirDataLeaf,
 	maxPtrsPerBlock, numDirEntries int) {
 	// Top block should always be dirty.
@@ -285,7 +285,7 @@ func testDirDataCheckLeafs(
 }
 
 func testDirDataCleanCache(
-	dd *dirData, cleanBCache BlockCache, dirtyBCache DirtyBlockCache) {
+	dd *DirData, cleanBCache BlockCache, dirtyBCache DirtyBlockCache) {
 	dbc := dirtyBCache.(*DirtyBlockCacheStandard)
 	for id, block := range dbc.cache {
 		ptr := BlockPointer{ID: id.id}

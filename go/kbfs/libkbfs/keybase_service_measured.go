@@ -293,7 +293,7 @@ func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybas
 func (k KeybaseServiceMeasured) NotifyPathUpdated(
 	ctx context.Context, path string) (err error) {
 	k.notifyPathUpdatedTimer.Time(func() {
-		err = k.delegate.NotifyPathUpdated(ctx, path)
+		err = k.delegate.NotifyPathUpdated(ctx, data.Path)
 	})
 	return err
 }

@@ -126,7 +126,7 @@ func (b *BlockSplitterSimple) SetMaxDirEntriesByBlockSize(
 	}
 
 	block := NewDirBlock().(*DirBlock)
-	bigName := strings.Repeat("a", maxNameBytesDefault)
+	bigName := strings.Repeat("a", MaxNameBytesDefault)
 	// Make "typical" DirEntry, though the max dir entry is a bit
 	// bigger than this (can contain a variable-length symlink path,
 	// for example).

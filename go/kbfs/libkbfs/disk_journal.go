@@ -128,7 +128,7 @@ func (j diskJournal) journalEntryPath(o journalOrdinal) string {
 // ioutil.IsNotExist() returns true.
 
 func (j diskJournal) readOrdinalFromDisk(path string) (journalOrdinal, error) {
-	buf, err := ioutil.ReadFile(path)
+	buf, err := ioutil.ReadFile(data.Path)
 	if err != nil {
 		return 0, err
 	}
@@ -136,7 +136,7 @@ func (j diskJournal) readOrdinalFromDisk(path string) (journalOrdinal, error) {
 }
 
 func (j *diskJournal) writeOrdinalToDisk(path string, o journalOrdinal) error {
-	return ioutil.WriteSerializedFile(path, []byte(o.String()), 0600)
+	return ioutil.WriteSerializedFile(data.Path, []byte(o.String()), 0600)
 }
 
 func (j diskJournal) readEarliestOrdinalFromDisk() (journalOrdinal, error) {

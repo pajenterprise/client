@@ -200,20 +200,13 @@ type ReadyProvider interface {
 		err error)
 }
 
-// blockPutState is an interface for keeping track of readied blocks
+// BlockPutState is an interface for keeping track of readied blocks
 // before putting them to the bserver.
-type blockPutState interface {
-	addNewBlock(
+type BlockPutState interface {
+	AddNewBlock(
 		ctx context.Context, blockPtr BlockPointer, block Block,
 		readyBlockData ReadyBlockData, syncedCb func() error) error
-	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
-	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
-	ptrs() []BlockPointer
-	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
-	getReadyBlockData(
-		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
-	synced(blockPtr BlockPointer) error
-	numBlocks() int
+	SaveOldPtr(ctx context.Context, oldPtr BlockPointer) error
 }
 
 // DirtyBlockCacheSimple is a bare-bones interface for a dirty block

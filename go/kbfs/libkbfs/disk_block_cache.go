@@ -609,7 +609,7 @@ func (cache *DiskBlockCacheLocal) Get(
 	entry, err := cache.blockDb.Get(blockKey, nil)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
-			NoSuchBlockError{blockID}
+			data.NoSuchBlockError{blockID}
 	}
 	md, err := cache.getMetadataLocked(blockID, true)
 	if err != nil {
@@ -697,7 +697,7 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if bytesAvailable < 0 {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{blockID}
 			}
 		} else {
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
@@ -705,7 +705,7 @@ func (cache *DiskBlockCacheLocal) Put(
 				return err
 			}
 			if !hasEnoughSpace {
-				return cachePutCacheFullError{blockID}
+				return data.CachePutCacheFullError{blockID}
 			}
 		}
 		err = cache.blockDb.PutWithMeter(blockKey, entry, cache.putMeter)
@@ -779,7 +779,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{blockID}
 	}
 	if md.FinishedPrefetch {
 		// Don't update md that's already completed.
@@ -1290,7 +1290,7 @@ func (cache *DiskBlockCacheLocal) Mark(
 
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
-		return NoSuchBlockError{blockID}
+		return data.NoSuchBlockError{blockID}
 	}
 	md.Tag = tag
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, false)

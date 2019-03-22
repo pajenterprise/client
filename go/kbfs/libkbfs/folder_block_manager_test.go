@@ -128,7 +128,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 		ctx, t, config, userName.String(), tlf.Private)
 	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err, "Couldn't get MD: %+v", err)
-	if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
+	if md.data.cachedChanges.Info.BlockPointer == data.ZeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
 }

@@ -58,7 +58,7 @@ func (t *testCRObserver) TlfHandleChange(ctx context.Context,
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
+	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb data.FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.FolderStatus(ctx, fb)
 	require.NoError(t, err)
@@ -355,7 +355,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	c := make(chan struct{}, 2)
 	cro := &testCRObserver{c, nil}
 	config1B.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1B.GetFolderBranch()}, cro)
+		[]data.FolderBranch{rootNode1B.GetFolderBranch()}, cro)
 
 	ops1B := getOps(config1B, fileNode1B.GetFolderBranch().Tlf)
 	ops2B := getOps(config2B, fileNode1B.GetFolderBranch().Tlf)
@@ -555,7 +555,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 		md, err := config1.MDOps().GetForTLF(ctx,
 			rootNode1.GetFolderBranch().Tlf, nil)
 		require.NoError(t, err)
-		require.NotEqual(t, zeroPtr, md.data.cachedChanges.Info.BlockPointer)
+		require.NotEqual(t, data.ZeroPtr, md.data.cachedChanges.Info.BlockPointer)
 	}
 }
 

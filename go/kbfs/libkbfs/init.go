@@ -674,7 +674,7 @@ func doInit(
 	config.SetBlockOps(NewBlockOpsStandard(
 		config, workers, prefetchWorkers, throttledPrefetchPeriod))
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
+	bsplitter, err := NewBlockSplitterSimple(data.MaxBlockSizeBytesDefault, 8*1024,
 		config.Codec())
 	if err != nil {
 		return nil, err

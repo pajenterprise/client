@@ -38,7 +38,7 @@ const (
 	// Total history size for 4194304-byte blocks: 2216672886784 bytes
 	MaxBlockSizeBytesDefault = 512 << 10
 	// Max supported size of a directory entry name.
-	maxNameBytesDefault = 255
+	MaxNameBytesDefault = 255
 	// The timeout for any background task.
 	backgroundTaskTimeout = 1 * time.Minute
 )
@@ -101,16 +101,16 @@ type BlockReqType int
 
 const (
 	// A block read request.
-	blockRead BlockReqType = iota
+	BlockRead BlockReqType = iota
 	// A block write request.
-	blockWrite
+	BlockWrite
 	// A block read request that is happening from a different
 	// goroutine than the blockLock rlock holder, using the same lState.
-	blockReadParallel
+	BlockReadParallel
 	// We are looking up a block for the purposes of creating a new
 	// node in the node cache for it; avoid any unlocks as part of the
 	// lookup process.
-	blockLookup
+	BlockLookup
 )
 
 // BlockDirectType indicates to what kind of block (direct or
@@ -174,7 +174,7 @@ type BlockPointer struct {
 	kbfsblock.Context
 }
 
-var zeroPtr BlockPointer
+var ZeroPtr BlockPointer
 
 // IsValid returns whether the block pointer is valid. A zero block
 // pointer is considered invalid.
@@ -238,14 +238,14 @@ var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
 	// These fields should not be used outside of putBlockToServer.
-	buf        []byte
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf
+	Buf        []byte
+	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
 // GetEncodedSize returns the size of the encoded (and encrypted)
 // block data.
 func (r ReadyBlockData) GetEncodedSize() int {
-	return len(r.buf)
+	return len(r.Buf)
 }
 
 // EntryInfo is the (non-block-related) info a directory knows about

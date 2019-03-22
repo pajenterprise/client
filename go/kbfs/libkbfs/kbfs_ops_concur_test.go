@@ -286,7 +286,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dbcs := config.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
@@ -411,7 +411,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dbcs := config.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
@@ -426,7 +426,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	defer kbfsConcurTestShutdownNoCheck(t, config, ctx, cancel)
 
 	// Turn off transient block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(data.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -519,7 +519,7 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, kmd libkey.KeyMetadata, blockPtr BlockPointer) (
+	ctx context.Context, kmd libkey.KeyMetadata, blockPtr data.BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
@@ -553,7 +553,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(data.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -635,7 +635,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(data.NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
@@ -716,7 +716,7 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
+	bsplitter, err := NewBlockSplitterSimple(data.MaxBlockSizeBytesDefault, 8*1024,
 		config.Codec())
 	if err != nil {
 		t.Fatal(err)
@@ -844,7 +844,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
+	config.SetBlockCache(data.NewBlockCacheStandard(0, 1<<30))
 
 	// Use the smallest block size possible.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -1289,14 +1289,14 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any()).Times(2).After(c).Return(nil)
 	putErr := errors.New("This is a forced error on put")
-	errPtrChan := make(chan BlockPointer)
+	errPtrChan := make(chan data.BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 			_ DiskBlockCacheType) {
-			errPtrChan <- BlockPointer{
+			errPtrChan <- data.BlockPointer{
 				ID:      id,
 				Context: context,
 			}
@@ -1315,7 +1315,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		AnyTimes().Return(nil, nil)
 	b.EXPECT().Shutdown(gomock.Any()).AnyTimes()
 
-	var errPtr BlockPointer
+	var errPtr data.BlockPointer
 	go func() {
 		errPtr = <-errPtrChan
 		close(proceedChan)
@@ -1444,7 +1444,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dbcs := config.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
@@ -1528,7 +1528,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user", tlf.Private)
 	require.NoError(t, err)
-	ptrs := make([]BlockPointer, len(pointerMap))
+	ptrs := make([]data.BlockPointer, len(pointerMap))
 	for _, ptr := range pointerMap {
 		ptrs = append(ptrs, ptr.BlockPointer)
 	}
@@ -1638,7 +1638,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	}
 
 	t.Log("Make sure there are no dirty blocks left at the end of the test.")
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dbcs := config.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		for ptr := range dbcs.cache {
@@ -2042,7 +2042,7 @@ type blockOpsOverQuota struct {
 }
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	blockPtr data.BlockPointer, readyBlockData data.ReadyBlockData) error {
 	return kbfsblock.ServerErrorOverQuota{
 		Throttled: true,
 	}
@@ -2065,7 +2065,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 
 	// Write over the dirty amount of data.  TODO: make this
 	// configurable for a speedier test.
-	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dbcs := config.DirtyBlockCache().(*data.DirtyBlockCacheStandard)
 	data := make([]byte, dbcs.minSyncBufCap+1)
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
@@ -2162,7 +2162,7 @@ type stallingNodeCache struct {
 }
 
 func (snc *stallingNodeCache) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) NodeID {
+	oldRef data.BlockRef, newPtr data.BlockPointer) NodeID {
 	select {
 	case <-snc.doStallUpdate:
 		<-snc.unstallUpdate
@@ -2171,7 +2171,7 @@ func (snc *stallingNodeCache) UpdatePointer(
 	return snc.NodeCache.UpdatePointer(oldRef, newPtr)
 }
 
-func (snc *stallingNodeCache) PathFromNode(node Node) path {
+func (snc *stallingNodeCache) PathFromNode(node Node) data.Path {
 	snc.beforePathsCalled <- struct{}{}
 	p := snc.NodeCache.PathFromNode(node)
 	snc.afterPathCalled <- struct{}{}

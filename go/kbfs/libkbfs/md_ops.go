@@ -1254,7 +1254,7 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 
 	// Ensure that the block changes are properly unembedded.
 	if !rmd.IsWriterMetadataCopiedSet() &&
-		rmd.data.Changes.Info.BlockPointer == zeroPtr &&
+		rmd.data.Changes.Info.BlockPointer == data.ZeroPtr &&
 		!md.config.BlockSplitter().ShouldEmbedBlockChanges(&rmd.data.Changes) {
 		return ImmutableRootMetadata{},
 			errors.New("MD has embedded block changes, but shouldn't")

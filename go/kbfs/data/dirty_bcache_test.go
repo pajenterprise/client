@@ -55,7 +55,7 @@ func testExpectedMissingDirty(
 
 func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(
-		&wallClock{}, logger.NewTestLogger(t),
+		&WallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(
@@ -63,7 +63,7 @@ func TestDirtyBcachePut(t *testing.T) {
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := kbfsblock.FakeID(1)
@@ -110,7 +110,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 }
 
 func TestDirtyBcacheDelete(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
@@ -135,7 +135,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
 		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64, 1)
@@ -262,7 +262,7 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 
 func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&WallClock{}, logger.NewTestLogger(t),
 		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	dirtyBcache.resetBufferCapTime = 1 * time.Millisecond

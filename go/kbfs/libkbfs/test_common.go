@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -729,7 +729,7 @@ func testRPCWithCanceledContext(t logger.TestLogBackend,
 // DisableUpdatesForTesting stops the given folder from acting on new
 // updates.  Send a struct{}{} down the returned channel to restart
 // notifications
-func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
+func DisableUpdatesForTesting(config Config, folderBranch data.FolderBranch) (
 	chan<- struct{}, error) {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
@@ -744,7 +744,7 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 
 // DisableCRForTesting stops conflict resolution for the given folder.
 // RestartCRForTesting should be called to restart it.
-func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
+func DisableCRForTesting(config Config, folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -758,7 +758,7 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 // RestartCRForTesting re-enables conflict resolution for the given
 // folder.  baseCtx must have a cancellation delayer.
 func RestartCRForTesting(baseCtx context.Context, config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -779,7 +779,7 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
 // the given config, for the given folder-branch.
 func ForceQuotaReclamationForTesting(config Config,
-	folderBranch FolderBranch) error {
+	folderBranch data.FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
@@ -810,7 +810,7 @@ func GetRootNodeForTest(
 		return nil, err
 	}
 
-	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
+	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	if err != nil {
 		return nil, err
 	}

@@ -21,15 +21,15 @@ import (
 )
 
 type testBlockCache struct {
-	b Block
+	b data.Block
 }
 
-func (c testBlockCache) Get(ptr BlockPointer) (Block, error) {
+func (c testBlockCache) Get(ptr data.BlockPointer) (data.Block, error) {
 	return c.b, nil
 }
 
-func (testBlockCache) Put(ptr BlockPointer, tlf tlf.ID, block Block,
-	lifetime BlockCacheLifetime) error {
+func (testBlockCache) Put(ptr data.BlockPointer, tlf tlf.ID, block data.Block,
+	lifetime data.BlockCacheLifetime) error {
 	return errors.New("Shouldn't be called")
 }
 
@@ -44,8 +44,8 @@ func TestReembedBlockChanges(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	RegisterOps(codec)
 
-	oldDir := BlockPointer{ID: kbfsblock.FakeID(1)}
-	co, err := newCreateOp("file", oldDir, File)
+	oldDir := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	co, err := newCreateOp("file", oldDir, data.File)
 	require.NoError(t, err)
 
 	changes := blockChangesNoInfo{
@@ -54,18 +54,18 @@ func TestReembedBlockChanges(t *testing.T) {
 
 	encodedChanges, err := codec.Encode(changes)
 	require.NoError(t, err)
-	block := &FileBlock{Contents: encodedChanges}
+	block := &data.FileBlock{Contents: encodedChanges}
 
 	ctx := context.Background()
 	bcache := testBlockCache{block}
 	tlfID := tlf.FakeID(1, tlf.Private)
 	mode := modeTest{NewInitModeFromType(InitDefault)}
 
-	ptr := BlockPointer{ID: kbfsblock.FakeID(2)}
+	ptr := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 	pmd := PrivateMetadata{
 		Changes: BlockChanges{
-			Info: BlockInfo{
-				BlockPointer: ptr,
+			Info: data.BlockInfo{
+				data.BlockPointer: ptr,
 			},
 		},
 	}
@@ -77,7 +77,7 @@ func TestReembedBlockChanges(t *testing.T) {
 
 	// We expect to get changes back, except with the implicit ref
 	// block added.
-	expectedCO, err := newCreateOp("file", oldDir, File)
+	expectedCO, err := newCreateOp("file", oldDir, data.File)
 	require.NoError(t, err)
 	expectedCO.AddRefBlock(ptr)
 	expectedChanges := BlockChanges{
@@ -89,8 +89,8 @@ func TestReembedBlockChanges(t *testing.T) {
 		Changes: expectedChanges,
 
 		cachedChanges: BlockChanges{
-			Info: BlockInfo{
-				BlockPointer: ptr,
+			Info: data.BlockInfo{
+				data.BlockPointer: ptr,
 			},
 		},
 	}
@@ -110,7 +110,7 @@ func TestGetRevisionByTime(t *testing.T) {
 		ctx, config.KBPKI(), config.MDOps(), nil, string(u1), tlf.Private)
 	require.NoError(t, err)
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

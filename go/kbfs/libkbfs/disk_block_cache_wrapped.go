@@ -186,7 +186,7 @@ func (cache *diskBlockCacheWrapped) Get(
 	primaryCache, secondaryCache := cache.rankCachesLocked(preferredCacheType)
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError); isNoSuchBlockError &&
+	if _, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
 			ctx, tlfID, blockID)
@@ -348,7 +348,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 	primaryCache, secondaryCache := cache.rankCachesLocked(cacheType)
 
 	err := primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError := errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}
@@ -362,7 +362,7 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		return err
 	}
 	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-	_, isNoSuchBlockError = errors.Cause(err).(NoSuchBlockError)
+	_, isNoSuchBlockError = errors.Cause(err).(data.NoSuchBlockError)
 	if !isNoSuchBlockError {
 		return err
 	}

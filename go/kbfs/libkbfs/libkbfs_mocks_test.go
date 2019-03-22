@@ -47,10 +47,10 @@ func (m *MockBlockCache) EXPECT() *MockBlockCacheMockRecorder {
 }
 
 // CheckForKnownPtr mocks base method
-func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *FileBlock) (BlockPointer, error) {
+func (m *MockBlockCache) CheckForKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) (data.BlockPointer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckForKnownPtr", arg0, arg1)
-	ret0, _ := ret[0].(BlockPointer)
+	ret0, _ := ret[0].(data.BlockPointer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -62,7 +62,7 @@ func (mr *MockBlockCacheMockRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *
 }
 
 // DeleteKnownPtr mocks base method
-func (m *MockBlockCache) DeleteKnownPtr(arg0 tlf.ID, arg1 *FileBlock) error {
+func (m *MockBlockCache) DeleteKnownPtr(arg0 tlf.ID, arg1 *data.FileBlock) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteKnownPtr", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -104,10 +104,10 @@ func (mr *MockBlockCacheMockRecorder) DeleteTransient(arg0, arg1 interface{}) *g
 }
 
 // Get mocks base method
-func (m *MockBlockCache) Get(arg0 BlockPointer) (Block, error) {
+func (m *MockBlockCache) Get(arg0 data.BlockPointer) (data.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
-	ret0, _ := ret[0].(Block)
+	ret0, _ := ret[0].(data.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -133,11 +133,11 @@ func (mr *MockBlockCacheMockRecorder) GetCleanBytesCapacity() *gomock.Call {
 }
 
 // GetWithLifetime mocks base method
-func (m *MockBlockCache) GetWithLifetime(arg0 BlockPointer) (Block, BlockCacheLifetime, error) {
+func (m *MockBlockCache) GetWithLifetime(arg0 data.BlockPointer) (data.Block, data.BlockCacheLifetime, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWithLifetime", arg0)
-	ret0, _ := ret[0].(Block)
-	ret1, _ := ret[1].(BlockCacheLifetime)
+	ret0, _ := ret[0].(data.Block)
+	ret1, _ := ret[1].(data.BlockCacheLifetime)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -149,7 +149,7 @@ func (mr *MockBlockCacheMockRecorder) GetWithLifetime(arg0 interface{}) *gomock.
 }
 
 // Put mocks base method
-func (m *MockBlockCache) Put(arg0 BlockPointer, arg1 tlf.ID, arg2 Block, arg3 BlockCacheLifetime) error {
+func (m *MockBlockCache) Put(arg0 data.BlockPointer, arg1 tlf.ID, arg2 data.Block, arg3 data.BlockCacheLifetime) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -198,7 +198,7 @@ func (m *MockBlockOps) EXPECT() *MockBlockOpsMockRecorder {
 }
 
 // Archive mocks base method
-func (m *MockBlockOps) Archive(arg0 context.Context, arg1 tlf.ID, arg2 []BlockPointer) error {
+func (m *MockBlockOps) Archive(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Archive", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -226,7 +226,7 @@ func (mr *MockBlockOpsMockRecorder) BlockRetriever() *gomock.Call {
 }
 
 // Delete mocks base method
-func (m *MockBlockOps) Delete(arg0 context.Context, arg1 tlf.ID, arg2 []BlockPointer) (map[kbfsblock.ID]int, error) {
+func (m *MockBlockOps) Delete(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
 	ret0, _ := ret[0].(map[kbfsblock.ID]int)
@@ -241,7 +241,7 @@ func (mr *MockBlockOpsMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock
 }
 
 // Get mocks base method
-func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 BlockPointer, arg3 Block, arg4 BlockCacheLifetime) error {
+func (m *MockBlockOps) Get(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer, arg3 data.Block, arg4 data.BlockCacheLifetime) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
@@ -255,7 +255,7 @@ func (mr *MockBlockOpsMockRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}
 }
 
 // GetEncodedSize mocks base method
-func (m *MockBlockOps) GetEncodedSize(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 BlockPointer) (uint32, keybase1.BlockStatus, error) {
+func (m *MockBlockOps) GetEncodedSize(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer) (uint32, keybase1.BlockStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEncodedSize", arg0, arg1, arg2)
 	ret0, _ := ret[0].(uint32)
@@ -271,7 +271,7 @@ func (mr *MockBlockOpsMockRecorder) GetEncodedSize(arg0, arg1, arg2 interface{})
 }
 
 // GetLiveCount mocks base method
-func (m *MockBlockOps) GetLiveCount(arg0 context.Context, arg1 tlf.ID, arg2 []BlockPointer) (map[kbfsblock.ID]int, error) {
+func (m *MockBlockOps) GetLiveCount(arg0 context.Context, arg1 tlf.ID, arg2 []data.BlockPointer) (map[kbfsblock.ID]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLiveCount", arg0, arg1, arg2)
 	ret0, _ := ret[0].(map[kbfsblock.ID]int)
@@ -300,12 +300,12 @@ func (mr *MockBlockOpsMockRecorder) Prefetcher() *gomock.Call {
 }
 
 // Ready mocks base method
-func (m *MockBlockOps) Ready(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 Block) (kbfsblock.ID, int, ReadyBlockData, error) {
+func (m *MockBlockOps) Ready(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.Block) (kbfsblock.ID, int, data.ReadyBlockData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Ready", arg0, arg1, arg2)
 	ret0, _ := ret[0].(kbfsblock.ID)
 	ret1, _ := ret[1].(int)
-	ret2, _ := ret[2].(ReadyBlockData)
+	ret2, _ := ret[2].(data.ReadyBlockData)
 	ret3, _ := ret[3].(error)
 	return ret0, ret1, ret2, ret3
 }
@@ -576,7 +576,7 @@ func (m *MockBlockSplitter) EXPECT() *MockBlockSplitterMockRecorder {
 }
 
 // CheckSplit mocks base method
-func (m *MockBlockSplitter) CheckSplit(arg0 *FileBlock) int64 {
+func (m *MockBlockSplitter) CheckSplit(arg0 *data.FileBlock) int64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckSplit", arg0)
 	ret0, _ := ret[0].(int64)
@@ -590,7 +590,7 @@ func (mr *MockBlockSplitterMockRecorder) CheckSplit(arg0 interface{}) *gomock.Ca
 }
 
 // CopyUntilSplit mocks base method
-func (m *MockBlockSplitter) CopyUntilSplit(arg0 *FileBlock, arg1 bool, arg2 []byte, arg3 int64) int64 {
+func (m *MockBlockSplitter) CopyUntilSplit(arg0 *data.FileBlock, arg1 bool, arg2 []byte, arg3 int64) int64 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CopyUntilSplit", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(int64)
@@ -632,10 +632,10 @@ func (mr *MockBlockSplitterMockRecorder) ShouldEmbedBlockChanges(arg0 interface{
 }
 
 // SplitDirIfNeeded mocks base method
-func (m *MockBlockSplitter) SplitDirIfNeeded(arg0 *DirBlock) ([]*DirBlock, *StringOffset) {
+func (m *MockBlockSplitter) SplitDirIfNeeded(arg0 *data.DirBlock) ([]*data.DirBlock, *StringOffset) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SplitDirIfNeeded", arg0)
-	ret0, _ := ret[0].([]*DirBlock)
+	ret0, _ := ret[0].([]*data.DirBlock)
 	ret1, _ := ret[1].(*StringOffset)
 	return ret0, ret1
 }
@@ -670,7 +670,7 @@ func (m *MockBlockWithPtrs) EXPECT() *MockBlockWithPtrsMockRecorder {
 }
 
 // AppendNewIndirectPtr mocks base method
-func (m *MockBlockWithPtrs) AppendNewIndirectPtr(arg0 BlockPointer, arg1 Offset) {
+func (m *MockBlockWithPtrs) AppendNewIndirectPtr(arg0 data.BlockPointer, arg1 Offset) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "AppendNewIndirectPtr", arg0, arg1)
 }
@@ -708,10 +708,10 @@ func (mr *MockBlockWithPtrsMockRecorder) ClearIndirectPtrSize(arg0 interface{}) 
 }
 
 // DataVersion mocks base method
-func (m *MockBlockWithPtrs) DataVersion() DataVer {
+func (m *MockBlockWithPtrs) DataVersion() data.DataVer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DataVersion")
-	ret0, _ := ret[0].(DataVer)
+	ret0, _ := ret[0].(data.DataVer)
 	return ret0
 }
 
@@ -750,10 +750,10 @@ func (mr *MockBlockWithPtrsMockRecorder) GetEncodedSize() *gomock.Call {
 }
 
 // IndirectPtr mocks base method
-func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (BlockInfo, Offset) {
+func (m *MockBlockWithPtrs) IndirectPtr(arg0 int) (data.BlockInfo, Offset) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IndirectPtr", arg0)
-	ret0, _ := ret[0].(BlockInfo)
+	ret0, _ := ret[0].(data.BlockInfo)
 	ret1, _ := ret[1].(Offset)
 	return ret0, ret1
 }
@@ -793,10 +793,10 @@ func (mr *MockBlockWithPtrsMockRecorder) IsTail() *gomock.Call {
 }
 
 // NewEmptier mocks base method
-func (m *MockBlockWithPtrs) NewEmptier() func() Block {
+func (m *MockBlockWithPtrs) NewEmptier() func() data.Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmptier")
-	ret0, _ := ret[0].(func() Block)
+	ret0, _ := ret[0].(func() data.Block)
 	return ret0
 }
 
@@ -807,10 +807,10 @@ func (mr *MockBlockWithPtrsMockRecorder) NewEmptier() *gomock.Call {
 }
 
 // NewEmpty mocks base method
-func (m *MockBlockWithPtrs) NewEmpty() Block {
+func (m *MockBlockWithPtrs) NewEmpty() data.Block {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEmpty")
-	ret0, _ := ret[0].(Block)
+	ret0, _ := ret[0].(data.Block)
 	return ret0
 }
 
@@ -849,7 +849,7 @@ func (mr *MockBlockWithPtrsMockRecorder) OffsetExceedsData(arg0, arg1 interface{
 }
 
 // Set mocks base method
-func (m *MockBlockWithPtrs) Set(arg0 Block) {
+func (m *MockBlockWithPtrs) Set(arg0 data.Block) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Set", arg0)
 }
@@ -873,7 +873,7 @@ func (mr *MockBlockWithPtrsMockRecorder) SetEncodedSize(arg0 interface{}) *gomoc
 }
 
 // SetIndirectPtrInfo mocks base method
-func (m *MockBlockWithPtrs) SetIndirectPtrInfo(arg0 int, arg1 BlockInfo) {
+func (m *MockBlockWithPtrs) SetIndirectPtrInfo(arg0 int, arg1 data.BlockInfo) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetIndirectPtrInfo", arg0, arg1)
 }
@@ -1118,7 +1118,7 @@ func (m *MockCrypto) EXPECT() *MockCryptoMockRecorder {
 }
 
 // DecryptBlock mocks base method
-func (m *MockCrypto) DecryptBlock(arg0 kbfscrypto.EncryptedBlock, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf, arg3 Block) error {
+func (m *MockCrypto) DecryptBlock(arg0 kbfscrypto.EncryptedBlock, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf, arg3 data.Block) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecryptBlock", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -1193,7 +1193,7 @@ func (mr *MockCryptoMockRecorder) DecryptTeamMerkleLeaf(arg0, arg1, arg2, arg3, 
 }
 
 // EncryptBlock mocks base method
-func (m *MockCrypto) EncryptBlock(arg0 Block, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf) (int, kbfscrypto.EncryptedBlock, error) {
+func (m *MockCrypto) EncryptBlock(arg0 data.Block, arg1 kbfscrypto.TLFCryptKey, arg2 kbfscrypto.BlockCryptKeyServerHalf) (int, kbfscrypto.EncryptedBlock, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EncryptBlock", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int)
@@ -1424,7 +1424,7 @@ func (mr *MockDirtyBlockCacheMockRecorder) BlockSyncFinished(arg0, arg1 interfac
 }
 
 // Delete mocks base method
-func (m *MockDirtyBlockCache) Delete(arg0 tlf.ID, arg1 BlockPointer, arg2 BranchName) error {
+func (m *MockDirtyBlockCache) Delete(arg0 tlf.ID, arg1 data.BlockPointer, arg2 data.BranchName) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1438,10 +1438,10 @@ func (mr *MockDirtyBlockCacheMockRecorder) Delete(arg0, arg1, arg2 interface{}) 
 }
 
 // Get mocks base method
-func (m *MockDirtyBlockCache) Get(arg0 context.Context, arg1 tlf.ID, arg2 BlockPointer, arg3 BranchName) (Block, error) {
+func (m *MockDirtyBlockCache) Get(arg0 context.Context, arg1 tlf.ID, arg2 data.BlockPointer, arg3 data.BranchName) (data.Block, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(Block)
+	ret0, _ := ret[0].(data.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1467,7 +1467,7 @@ func (mr *MockDirtyBlockCacheMockRecorder) IsAnyDirty(arg0 interface{}) *gomock.
 }
 
 // IsDirty mocks base method
-func (m *MockDirtyBlockCache) IsDirty(arg0 tlf.ID, arg1 BlockPointer, arg2 BranchName) bool {
+func (m *MockDirtyBlockCache) IsDirty(arg0 tlf.ID, arg1 data.BlockPointer, arg2 data.BranchName) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsDirty", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
@@ -1481,7 +1481,7 @@ func (mr *MockDirtyBlockCacheMockRecorder) IsDirty(arg0, arg1, arg2 interface{})
 }
 
 // Put mocks base method
-func (m *MockDirtyBlockCache) Put(arg0 context.Context, arg1 tlf.ID, arg2 BlockPointer, arg3 BranchName, arg4 Block) error {
+func (m *MockDirtyBlockCache) Put(arg0 context.Context, arg1 tlf.ID, arg2 data.BlockPointer, arg3 data.BranchName, arg4 data.Block) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
@@ -1495,10 +1495,10 @@ func (mr *MockDirtyBlockCacheMockRecorder) Put(arg0, arg1, arg2, arg3, arg4 inte
 }
 
 // RequestPermissionToDirty mocks base method
-func (m *MockDirtyBlockCache) RequestPermissionToDirty(arg0 context.Context, arg1 tlf.ID, arg2 int64) (DirtyPermChan, error) {
+func (m *MockDirtyBlockCache) RequestPermissionToDirty(arg0 context.Context, arg1 tlf.ID, arg2 int64) (data.DirtyPermChan, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RequestPermissionToDirty", arg0, arg1, arg2)
-	ret0, _ := ret[0].(DirtyPermChan)
+	ret0, _ := ret[0].(data.DirtyPermChan)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1635,11 +1635,11 @@ func (mr *MockKBFSOpsMockRecorder) ClearPrivateFolderMD(arg0 interface{}) *gomoc
 }
 
 // CreateDir mocks base method
-func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 string) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDir", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
+	ret1, _ := ret[1].(data.EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1651,11 +1651,11 @@ func (mr *MockKBFSOpsMockRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // CreateFile mocks base method
-func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 string, arg3 bool, arg4 Excl) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 string, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFile", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
+	ret1, _ := ret[1].(data.EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1667,10 +1667,10 @@ func (mr *MockKBFSOpsMockRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 inter
 }
 
 // CreateLink mocks base method
-func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 string) (EntryInfo, error) {
+func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 string) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(EntryInfo)
+	ret0, _ := ret[0].(data.EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1696,7 +1696,7 @@ func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomoc
 }
 
 // FolderStatus mocks base method
-func (m *MockKBFSOps) FolderStatus(arg0 context.Context, arg1 FolderBranch) (FolderBranchStatus, <-chan StatusUpdate, error) {
+func (m *MockKBFSOps) FolderStatus(arg0 context.Context, arg1 data.FolderBranch) (FolderBranchStatus, <-chan StatusUpdate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FolderStatus", arg0, arg1)
 	ret0, _ := ret[0].(FolderBranchStatus)
@@ -1724,10 +1724,10 @@ func (mr *MockKBFSOpsMockRecorder) ForceFastForward(arg0 interface{}) *gomock.Ca
 }
 
 // GetDirChildren mocks base method
-func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[string]EntryInfo, error) {
+func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[string]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDirChildren", arg0, arg1)
-	ret0, _ := ret[0].(map[string]EntryInfo)
+	ret0, _ := ret[0].(map[string]data.EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1739,7 +1739,7 @@ func (mr *MockKBFSOpsMockRecorder) GetDirChildren(arg0, arg1 interface{}) *gomoc
 }
 
 // GetEditHistory mocks base method
-func (m *MockKBFSOps) GetEditHistory(arg0 context.Context, arg1 FolderBranch) (keybase1.FSFolderEditHistory, error) {
+func (m *MockKBFSOps) GetEditHistory(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FSFolderEditHistory, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEditHistory", arg0, arg1)
 	ret0, _ := ret[0].(keybase1.FSFolderEditHistory)
@@ -1799,11 +1799,11 @@ func (mr *MockKBFSOpsMockRecorder) GetNodeMetadata(arg0, arg1 interface{}) *gomo
 }
 
 // GetOrCreateRootNode mocks base method
-func (m *MockKBFSOps) GetOrCreateRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 BranchName) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) GetOrCreateRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 data.BranchName) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreateRootNode", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
+	ret1, _ := ret[1].(data.EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1815,11 +1815,11 @@ func (mr *MockKBFSOpsMockRecorder) GetOrCreateRootNode(arg0, arg1, arg2 interfac
 }
 
 // GetRootNode mocks base method
-func (m *MockKBFSOps) GetRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 BranchName) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) GetRootNode(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 data.BranchName) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRootNode", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
+	ret1, _ := ret[1].(data.EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1892,7 +1892,7 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFID(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetUpdateHistory mocks base method
-func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 FolderBranch) (TLFUpdateHistory, error) {
+func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 data.FolderBranch) (TLFUpdateHistory, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUpdateHistory", arg0, arg1)
 	ret0, _ := ret[0].(TLFUpdateHistory)
@@ -1935,11 +1935,11 @@ func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 }
 
 // Lookup mocks base method
-func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 string) (Node, EntryInfo, error) {
+func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
+	ret1, _ := ret[1].(data.EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -2177,10 +2177,10 @@ func (mr *MockKBFSOpsMockRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 }
 
 // Stat mocks base method
-func (m *MockKBFSOps) Stat(arg0 context.Context, arg1 Node) (EntryInfo, error) {
+func (m *MockKBFSOps) Stat(arg0 context.Context, arg1 Node) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stat", arg0, arg1)
-	ret0, _ := ret[0].(EntryInfo)
+	ret0, _ := ret[0].(data.EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2208,7 +2208,7 @@ func (mr *MockKBFSOpsMockRecorder) Status(arg0 interface{}) *gomock.Call {
 }
 
 // SyncAll mocks base method
-func (m *MockKBFSOps) SyncAll(arg0 context.Context, arg1 FolderBranch) error {
+func (m *MockKBFSOps) SyncAll(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncAll", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2222,7 +2222,7 @@ func (mr *MockKBFSOpsMockRecorder) SyncAll(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // SyncFromServer mocks base method
-func (m *MockKBFSOps) SyncFromServer(arg0 context.Context, arg1 FolderBranch, arg2 *keybase1.LockID) error {
+func (m *MockKBFSOps) SyncFromServer(arg0 context.Context, arg1 data.FolderBranch, arg2 *keybase1.LockID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncFromServer", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -2274,7 +2274,7 @@ func (mr *MockKBFSOpsMockRecorder) Truncate(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // UnstageForTesting mocks base method
-func (m *MockKBFSOps) UnstageForTesting(arg0 context.Context, arg1 FolderBranch) error {
+func (m *MockKBFSOps) UnstageForTesting(arg0 context.Context, arg1 data.FolderBranch) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnstageForTesting", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -3155,7 +3155,7 @@ func (m *MockKeyManager) EXPECT() *MockKeyManagerMockRecorder {
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
-func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 BlockPointer) (kbfscrypto.TLFCryptKey, error) {
+func (m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(arg0 context.Context, arg1 libkey.KeyMetadata, arg2 data.BlockPointer) (kbfscrypto.TLFCryptKey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
@@ -3995,10 +3995,10 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 }
 
 // EntryType mocks base method
-func (m *MockNode) EntryType() EntryType {
+func (m *MockNode) EntryType() data.EntryType {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EntryType")
-	ret0, _ := ret[0].(EntryType)
+	ret0, _ := ret[0].(data.EntryType)
 	return ret0
 }
 
@@ -4065,10 +4065,10 @@ func (mr *MockNodeMockRecorder) GetFile(arg0 interface{}) *gomock.Call {
 }
 
 // GetFolderBranch mocks base method
-func (m *MockNode) GetFolderBranch() FolderBranch {
+func (m *MockNode) GetFolderBranch() data.FolderBranch {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFolderBranch")
-	ret0, _ := ret[0].(FolderBranch)
+	ret0, _ := ret[0].(data.FolderBranch)
 	return ret0
 }
 
@@ -4122,12 +4122,12 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, EntryType, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, string) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
-	ret2, _ := ret[2].(EntryType)
+	ret2, _ := ret[2].(data.EntryType)
 	ret3, _ := ret[3].(string)
 	return ret0, ret1, ret2, ret3
 }
@@ -4244,7 +4244,7 @@ func (mr *MockNodeCacheMockRecorder) AllNodes() *gomock.Call {
 }
 
 // Get mocks base method
-func (m *MockNodeCache) Get(arg0 BlockRef) Node {
+func (m *MockNodeCache) Get(arg0 data.BlockRef) Node {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(Node)
@@ -4258,7 +4258,7 @@ func (mr *MockNodeCacheMockRecorder) Get(arg0 interface{}) *gomock.Call {
 }
 
 // GetOrCreate mocks base method
-func (m *MockNodeCache) GetOrCreate(arg0 BlockPointer, arg1 string, arg2 Node, arg3 EntryType) (Node, error) {
+func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 string, arg2 Node, arg3 data.EntryType) (Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreate", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(Node)
@@ -4287,7 +4287,7 @@ func (mr *MockNodeCacheMockRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
 }
 
 // Move mocks base method
-func (m *MockNodeCache) Move(arg0 BlockRef, arg1 Node, arg2 string) (func(), error) {
+func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 string) (func(), error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", arg0, arg1, arg2)
 	ret0, _ := ret[0].(func())
@@ -4302,10 +4302,10 @@ func (mr *MockNodeCacheMockRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // PathFromNode mocks base method
-func (m *MockNodeCache) PathFromNode(arg0 Node) path {
+func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PathFromNode", arg0)
-	ret0, _ := ret[0].(path)
+	ret0, _ := ret[0].(data.Path)
 	return ret0
 }
 
@@ -4316,7 +4316,7 @@ func (mr *MockNodeCacheMockRecorder) PathFromNode(arg0 interface{}) *gomock.Call
 }
 
 // Unlink mocks base method
-func (m *MockNodeCache) Unlink(arg0 BlockRef, arg1 path, arg2 DirEntry) func() {
+func (m *MockNodeCache) Unlink(arg0 data.BlockRef, arg1 data.Path, arg2 data.DirEntry) func() {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unlink", arg0, arg1, arg2)
 	ret0, _ := ret[0].(func())
@@ -4330,10 +4330,10 @@ func (mr *MockNodeCacheMockRecorder) Unlink(arg0, arg1, arg2 interface{}) *gomoc
 }
 
 // UnlinkedDirEntry mocks base method
-func (m *MockNodeCache) UnlinkedDirEntry(arg0 Node) DirEntry {
+func (m *MockNodeCache) UnlinkedDirEntry(arg0 Node) data.DirEntry {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnlinkedDirEntry", arg0)
-	ret0, _ := ret[0].(DirEntry)
+	ret0, _ := ret[0].(data.DirEntry)
 	return ret0
 }
 
@@ -4344,7 +4344,7 @@ func (mr *MockNodeCacheMockRecorder) UnlinkedDirEntry(arg0 interface{}) *gomock.
 }
 
 // UpdatePointer mocks base method
-func (m *MockNodeCache) UpdatePointer(arg0 BlockRef, arg1 BlockPointer) NodeID {
+func (m *MockNodeCache) UpdatePointer(arg0 data.BlockRef, arg1 data.BlockPointer) NodeID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePointer", arg0, arg1)
 	ret0, _ := ret[0].(NodeID)
@@ -4358,7 +4358,7 @@ func (mr *MockNodeCacheMockRecorder) UpdatePointer(arg0, arg1 interface{}) *gomo
 }
 
 // UpdateUnlinkedDirEntry mocks base method
-func (m *MockNodeCache) UpdateUnlinkedDirEntry(arg0 Node, arg1 DirEntry) {
+func (m *MockNodeCache) UpdateUnlinkedDirEntry(arg0 Node, arg1 data.DirEntry) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateUnlinkedDirEntry", arg0, arg1)
 }
@@ -4430,7 +4430,7 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 }
 
 // RegisterForChanges mocks base method
-func (m *MockNotifier) RegisterForChanges(arg0 []FolderBranch, arg1 Observer) error {
+func (m *MockNotifier) RegisterForChanges(arg0 []data.FolderBranch, arg1 Observer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterForChanges", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -4444,7 +4444,7 @@ func (mr *MockNotifierMockRecorder) RegisterForChanges(arg0, arg1 interface{}) *
 }
 
 // UnregisterFromChanges mocks base method
-func (m *MockNotifier) UnregisterFromChanges(arg0 []FolderBranch, arg1 Observer) error {
+func (m *MockNotifier) UnregisterFromChanges(arg0 []data.FolderBranch, arg1 Observer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnregisterFromChanges", arg0, arg1)
 	ret0, _ := ret[0].(error)

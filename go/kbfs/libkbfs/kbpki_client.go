@@ -410,7 +410,7 @@ func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotif
 // NotifyPathUpdated implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) NotifyPathUpdated(
 	ctx context.Context, path string) error {
-	return k.serviceOwner.KeybaseService().NotifyPathUpdated(ctx, path)
+	return k.serviceOwner.KeybaseService().NotifyPathUpdated(ctx, data.Path)
 }
 
 // PutGitMetadata implements the KBPKI interface for KBPKIClient.

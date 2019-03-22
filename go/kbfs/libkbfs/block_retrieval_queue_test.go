@@ -21,7 +21,7 @@ import (
 type testBlockRetrievalConfig struct {
 	codecGetter
 	logMaker
-	testCache BlockCache
+	testCache data.BlockCache
 	bg        blockGetter
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
@@ -34,7 +34,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMakerWithVDebug(t, "vlog2"),
-		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
+		data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),
@@ -43,11 +43,11 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	}
 }
 
-func (c *testBlockRetrievalConfig) BlockCache() BlockCache {
+func (c *testBlockRetrievalConfig) BlockCache() data.BlockCache {
 	return c.testCache
 }
 
-func (c testBlockRetrievalConfig) DataVersion() DataVer {
+func (c testBlockRetrievalConfig) DataVersion() data.DataVer {
 	return ChildHolesDataVer
 }
 
@@ -59,10 +59,10 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
 }
 
-func makeRandomBlockPointer(t *testing.T) BlockPointer {
+func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
 	id, err := kbfsblock.MakeTemporaryID()
 	require.NoError(t, err)
-	return BlockPointer{
+	return data.BlockPointer{
 		id,
 		5,
 		1,
@@ -95,7 +95,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
@@ -103,7 +103,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 	t.Log("Begin working on the request.")
 	br := q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -122,7 +122,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
 	ptr2 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and a higher priority " +
 		"retrieval for ptr2.")
 	_ = q.Request(
@@ -133,14 +133,14 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 	t.Log("Begin working on the preempted ptr2 request.")
 	br := q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
 
 	t.Log("Begin working on the ptr1 request.")
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
@@ -155,7 +155,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
 	ptr2 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and ptr2.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
@@ -166,7 +166,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 request.")
 	br := q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
@@ -179,14 +179,14 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 	t.Log("Begin working on the ptr3 request.")
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(2), br.insertionOrder)
 
 	t.Log("Begin working on the ptr2 request.")
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
@@ -200,7 +200,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request a block retrieval for ptr1 twice.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
@@ -211,7 +211,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
 	br := q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -232,7 +232,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	ptr1 := makeRandomBlockPointer(t)
 	ptr2 := makeRandomBlockPointer(t)
 	ptr3 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request 3 block retrievals, each preempting the previous one.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
@@ -246,7 +246,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 	t.Log("Begin working on the ptr3 retrieval.")
 	br := q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+2, br.priority)
 	require.Equal(t, uint64(2), br.insertionOrder)
@@ -258,7 +258,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has increased in priority and has 2 requests.")
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+2, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
@@ -266,7 +266,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 	t.Log("Begin working on the ptr2 retrieval.")
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
@@ -280,7 +280,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
-	block := &FileBlock{}
+	block := &data.FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority, makeKMD(), ptr1, block,
@@ -307,13 +307,13 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Equal(t, block, br.requests[1].block)
 
 	t.Log("Finalize the existing request for ptr1.")
-	q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, nil)
+	q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
 	_ = q.Request(
 		ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
 		block, NoCacheEntry, BlockRequestWithPrefetch)
 	br = q.popIfNotEmpty()
-	defer q.FinalizeRequest(br, &FileBlock{}, DiskBlockAnyCache, io.EOF)
+	defer q.FinalizeRequest(br, &data.FileBlock{}, DiskBlockAnyCache, io.EOF)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
 	require.Len(t, br.requests, 1)
@@ -334,12 +334,12 @@ func TestBlockRetrievalQueueThrottling(t *testing.T) {
 
 	ctx := context.Background()
 	ptr1 := makeRandomBlockPointer(t)
-	block1 := &FileBlock{}
+	block1 := &data.FileBlock{}
 	_ = q.Request(
 		ctx, throttleRequestPriority, makeKMD(), ptr1, block1,
 		NoCacheEntry, BlockRequestSolo)
 	ptr2 := makeRandomBlockPointer(t)
-	block2 := &FileBlock{}
+	block2 := &data.FileBlock{}
 	_ = q.Request(
 		ctx, throttleRequestPriority-100, makeKMD(), ptr2, block2,
 		NoCacheEntry, BlockRequestSolo)

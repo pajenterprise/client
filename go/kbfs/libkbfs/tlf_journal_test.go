@@ -78,9 +78,9 @@ type testTLFJournalConfig struct {
 	*testSyncedTlfGetterSetter
 	t            *testing.T
 	tlfID        tlf.ID
-	splitter     BlockSplitter
+	splitter     data.BlockSplitter
 	crypto       *CryptoLocal
-	bcache       BlockCache
+	bcache       data.BlockCache
 	bops         BlockOps
 	mdcache      MDCache
 	ver          kbfsmd.MetadataVer
@@ -93,19 +93,19 @@ type testTLFJournalConfig struct {
 	dlTimeout    time.Duration
 }
 
-func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
+func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {
 	return c.splitter
 }
 
 func (c testTLFJournalConfig) Clock() Clock {
-	return wallClock{}
+	return data.WallClock{}
 }
 
 func (c testTLFJournalConfig) Crypto() Crypto {
 	return c.crypto
 }
 
-func (c testTLFJournalConfig) BlockCache() BlockCache {
+func (c testTLFJournalConfig) BlockCache() data.BlockCache {
 	return c.bcache
 }
 

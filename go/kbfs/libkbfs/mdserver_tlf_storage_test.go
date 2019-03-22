@@ -40,7 +40,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	}()
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	s := makeMDServerTlfStorage(tlfID, codec, wallClock{}, nil,
+	s := makeMDServerTlfStorage(tlfID, codec, data.WallClock{}, nil,
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
 

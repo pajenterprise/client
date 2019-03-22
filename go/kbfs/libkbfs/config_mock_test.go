@@ -130,7 +130,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
-	config.maxNameBytes = maxNameBytesDefault
+	config.maxNameBytes = data.MaxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.SetMetadataVersion(defaultClientMetadataVer)

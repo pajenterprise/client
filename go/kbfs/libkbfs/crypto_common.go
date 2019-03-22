@@ -6,9 +6,8 @@ package libkbfs
 
 import (
 	"crypto/rand"
-	"encoding/binary"
-	"io"
 
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -123,7 +122,7 @@ func (c CryptoCommon) DecryptPrivateMetadata(
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptBlock(
-	block Block, tlfCryptKey kbfscrypto.TLFCryptKey,
+	block data.Block, tlfCryptKey kbfscrypto.TLFCryptKey,
 	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) (
 	plainSize int, encryptedBlock kbfscrypto.EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
@@ -152,7 +151,7 @@ func (c CryptoCommon) EncryptBlock(
 func (c CryptoCommon) DecryptBlock(
 	encryptedBlock kbfscrypto.EncryptedBlock,
 	tlfCryptKey kbfscrypto.TLFCryptKey,
-	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block Block) error {
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf, block data.Block) error {
 	var paddedBlock []byte
 	paddedBlock, err := kbfscrypto.DecryptBlock(
 		encryptedBlock, tlfCryptKey, blockServerHalf)

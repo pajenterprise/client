@@ -214,8 +214,8 @@ func TestBlockDiskStoreRemove(t *testing.T) {
 	err = filepath.Walk(s.dir,
 		func(path string, info os.FileInfo, _ error) error {
 			// We should only find the blocks directory here.
-			if path != s.dir {
-				t.Errorf("Found unexpected block path: %s", path)
+			if data.Path != s.dir {
+				t.Errorf("Found unexpected block path: %s", data.Path)
 			}
 			return nil
 		})

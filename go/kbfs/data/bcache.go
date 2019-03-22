@@ -299,7 +299,7 @@ func (b *BlockCacheStandard) Put(
 	}
 	if lifetime == TransientEntry {
 		if !transientCacheHasRoom {
-			return cachePutCacheFullError{ptr.ID}
+			return CachePutCacheFullError{ptr.ID}
 		}
 		b.cleanTransient.Add(ptr.ID, block)
 	}
