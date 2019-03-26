@@ -705,3 +705,5 @@ const ClientTriplesecVersion = 3
 
 // Also hard-coded in packaging/linux/{post_install.sh,run_keybase}
 const DisableRootRedirectorConfigKey = "disable-root-redirector"
+
+const SecretServiceKeyringServiceName = "keybase"
