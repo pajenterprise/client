@@ -22,16 +22,16 @@ func NewSecretStoreSecretService() *SecretStoreSecretService {
 	return &SecretStoreSecretService{}
 }
 
-func (s *SecretStoreSecretService) makeServiceAttributes() secsrv.Attributes {
+func (s *SecretStoreSecretService) makeServiceAttributes(mctx MetaContext) secsrv.Attributes {
 	return secsrv.Attributes{
-		"service": SecretServiceKeyringServiceName,
+		"service": mctx.G().Env.GetStoredSecretServiceName(),
 	}
 }
 
 // TODO add note about do not delete if NOPW?
 // "note": "This is a "
-func (s *SecretStoreSecretService) makeAttributes(username NormalizedUsername) secsrv.Attributes {
-	serviceAttributes := s.makeServiceAttributes()
+func (s *SecretStoreSecretService) makeAttributes(mctx MetaContext, username NormalizedUsername) secsrv.Attributes {
+	serviceAttributes := s.makeServiceAttributes(mctx)
 	serviceAttributes["username"] = string(username)
 	return serviceAttributes
 }
@@ -40,7 +40,7 @@ func (s *SecretStoreSecretService) retrieveSingleItem(mctx MetaContext, srv *sec
 	if srv == nil {
 		return "", fmt.Errorf("got nil d-bus secretservice")
 	}
-	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeAttributes(username))
+	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeAttributes(mctx, username))
 	if err != nil {
 		return "", err
 	}
@@ -86,8 +86,8 @@ func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username Normal
 	if err != nil {
 		return err
 	}
-	label := fmt.Sprintf("%s@%s")
-	properties := secsrv.NewSecretProperties(label, s.makeAttributes(username))
+	label := fmt.Sprintf("%s@%s", username, mctx.G().Env.GetStoredSecretServiceName())
+	properties := secsrv.NewSecretProperties(label, s.makeAttributes(mctx, username))
 	srvSecret := secsrv.Secret{
 		Session:     session,
 		Parameters:  nil,
@@ -126,7 +126,7 @@ func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (
 	if err != nil {
 		return nil, err
 	}
-	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeServiceAttributes())
+	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeServiceAttributes(mctx))
 	if err != nil {
 		return nil, err
 	}
