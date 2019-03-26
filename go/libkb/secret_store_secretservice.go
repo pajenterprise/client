@@ -1,3 +1,8 @@
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+// +build linux
+
 package libkb
 
 import (
@@ -23,13 +28,15 @@ func (s *SecretStoreSecretService) makeServiceAttributes() secsrv.Attributes {
 	}
 }
 
+// TODO add note about do not delete if NOPW?
+// "note": "This is a "
 func (s *SecretStoreSecretService) makeAttributes(username NormalizedUsername) secsrv.Attributes {
 	serviceAttributes := s.makeServiceAttributes()
 	serviceAttributes["username"] = string(username)
 	return serviceAttributes
 }
 
-func (s *SecretStoreSecretService) retrieveItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername) (dbus.ObjectPath, error) {
+func (s *SecretStoreSecretService) retrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername) (dbus.ObjectPath, error) {
 	if srv == nil {
 		return "", fmt.Errorf("got nil d-bus secretservice")
 	}
@@ -58,7 +65,7 @@ func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username Nor
 		return LKSecFullSecret{}, err
 	}
 
-	item, err := s.retrieveItem(mctx, srv, username)
+	item, err := s.retrieveSingleItem(mctx, srv, username)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -79,7 +86,7 @@ func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username Normal
 	if err != nil {
 		return err
 	}
-	label := fmt.Sprintf("%s@%s (do not delete)")
+	label := fmt.Sprintf("%s@%s")
 	properties := secsrv.NewSecretProperties(label, s.makeAttributes(username))
 	srvSecret := secsrv.Secret{
 		Session:     session,
@@ -103,7 +110,7 @@ func (s *SecretStoreSecretService) ClearSecret(mctx MetaContext, username Normal
 	if err != nil {
 		return err
 	}
-	item, err := s.retrieveItem(mctx, srv, username)
+	item, err := s.retrieveSingleItem(mctx, srv, username)
 	if err != nil {
 		return err
 	}
