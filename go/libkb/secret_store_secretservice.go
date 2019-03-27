@@ -36,23 +36,23 @@ func (s *SecretStoreSecretService) makeAttributes(mctx MetaContext, username Nor
 	return serviceAttributes
 }
 
-func (s *SecretStoreSecretService) retrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername) (dbus.ObjectPath, error) {
+func (s *SecretStoreSecretService) maybeRetrieveSingleItem(mctx MetaContext, srv *secsrv.SecretService, username NormalizedUsername) (*dbus.ObjectPath, error) {
 	if srv == nil {
-		return "", fmt.Errorf("got nil d-bus secretservice")
+		return nil, fmt.Errorf("got nil d-bus secretservice")
 	}
 	items, err := srv.SearchCollection(secsrv.DefaultCollection, s.makeAttributes(mctx, username))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if len(items) < 1 { // and if > 1? clear all..or something
-		return "", fmt.Errorf("no secret found") // need real errtype
+	if len(items) < 1 { // TODO and if > 1? clear all..or something
+		return nil, nil
 	}
 	item := items[0]
 	err = srv.Unlock([]dbus.ObjectPath{item})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return item, nil
+	return &item, nil
 }
 
 func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
@@ -67,11 +67,14 @@ func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username Nor
 		return LKSecFullSecret{}, err
 	}
 
-	item, err := s.retrieveSingleItem(mctx, srv, username)
+	item, err := s.maybeRetrieveSingleItem(mctx, srv, username)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
-	secretObj, err := srv.GetSecret(item, session)
+	if item == nil {
+		return LKSecFullSecret{}, fmt.Errorf("secret not found in secretstore")
+	}
+	secretObj, err := srv.GetSecret(*item, session)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -116,11 +119,15 @@ func (s *SecretStoreSecretService) ClearSecret(mctx MetaContext, username Normal
 	if err != nil {
 		return err
 	}
-	item, err := s.retrieveSingleItem(mctx, srv, username)
+	item, err := s.maybeRetrieveSingleItem(mctx, srv, username)
 	if err != nil {
 		return err
 	}
-	err = srv.DeleteItem(item)
+	if item == nil {
+		mctx.Debug("secret not found; short-circuiting clear")
+		return nil
+	}
+	err = srv.DeleteItem(*item)
 	if err != nil {
 		return err
 	}

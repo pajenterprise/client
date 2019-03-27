@@ -6,6 +6,9 @@
 package libkb
 
 func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
-	s := NewSecretStoreSecretService()
-	return s
+	g := mctx.G()
+	sfile := NewSecretStoreFile(g.Env.GetDataDir())
+	sfile.notifyCreate = func(name NormalizedUsername) { notifySecretStoreCreate(g, name) }
+	ssecretservice := NewSecretStoreSecretService()
+	return NewSecretStoreUpgradeable(ssecretservice, sfile)
 }

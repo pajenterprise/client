@@ -44,6 +44,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 		return nil
 	}
 
+	mctx.Warning("Failed to reach system keyring, falling back to file-based secret store.")
 	err2 := s.b.StoreSecret(mctx, username, secret)
 	if err2 == nil {
 		return nil
