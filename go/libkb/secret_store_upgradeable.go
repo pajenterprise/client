@@ -11,7 +11,8 @@ func NewSecretStoreUpgradeable(a, b SecretStoreAll) *SecretStoreUpgradeable {
 	return &SecretStoreUpgradeable{a: a, b: b}
 }
 
-func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
+func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
+	defer mctx.TraceTimed("SecretStoreUpgradeable.RetrieveSecret", func() error { return err })()
 	secret, err1 := s.a.RetrieveSecret(mctx, username)
 	if err1 == nil {
 		return secret, nil
@@ -26,10 +27,12 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 		}
 		return secret, nil
 	}
-	return LKSecFullSecret{}, CombineErrors(err1, err2)
+	err = CombineErrors(err1, err2)
+	return LKSecFullSecret{}, err
 }
 
-func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
 	err1 := s.a.StoreSecret(mctx, username, secret)
 	if err1 == nil {
 		clearBErr := s.b.ClearSecret(mctx, username)
@@ -45,32 +48,33 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 	if err2 == nil {
 		return nil
 	}
-	return CombineErrors(err1, err2)
+	err = CombineErrors(err1, err2)
+	return err
 }
 
-func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username NormalizedUsername) error {
-	err1 := s.a.ClearSecret(mctx, username)
-	err2 := s.b.ClearSecret(mctx, username)
-	return CombineErrors(err1, err2)
+func (s *SecretStoreUpgradeable) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
+	defer mctx.TraceTimed("SecretStoreUpgradeable.ClearSecret", func() error { return err })()
+	return CombineErrors(s.a.ClearSecret(mctx, username), s.b.ClearSecret(mctx, username))
 }
 
-func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
-	usernames := make(map[string]bool)
+func (s *SecretStoreUpgradeable) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
+	defer mctx.TraceTimed("SecretStoreUpgradeable.GetUsersWithStoredSecrets", func() error { return err })()
+	usernameMap := make(map[string]bool)
 	usernamesA, err1 := s.a.GetUsersWithStoredSecrets(mctx)
 	if err1 == nil {
 		for _, u := range usernamesA {
-			usernames[u] = true
+			usernameMap[u] = true
 		}
 	}
 	usernamesB, err2 := s.b.GetUsersWithStoredSecrets(mctx)
 	if err2 == nil {
 		for _, u := range usernamesB {
-			usernames[u] = true
+			usernameMap[u] = true
 		}
 	}
-	var usernamesList []string
-	for username := range usernames {
-		usernamesList = append(usernamesList, username)
+	for username := range usernameMap {
+		usernames = append(usernames, username)
 	}
-	return usernamesList, CombineErrors(err1, err2)
+	err = CombineErrors(err1, err2)
+	return usernames, err
 }

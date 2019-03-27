@@ -55,7 +55,9 @@ func (s *SecretStoreSecretService) retrieveSingleItem(mctx MetaContext, srv *sec
 	return item, nil
 }
 
-func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
+func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
+	defer mctx.TraceTimed("SecretStoreSecretService.RetrieveSecret", func() error { return err })()
+
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return LKSecFullSecret{}, err
@@ -69,15 +71,16 @@ func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username Nor
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
-
-	secret, err := srv.GetSecret(item, session)
+	secretObj, err := srv.GetSecret(item, session)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
-	return newLKSecFullSecretFromBytes(secret.Value)
+	return newLKSecFullSecretFromBytes(secretObj.Value)
 }
 
-func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer mctx.TraceTimed("SecretStoreSecretService.StoreSecret", func() error { return err })()
+
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return err
@@ -106,7 +109,9 @@ func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username Normal
 	return nil
 }
 
-func (s *SecretStoreSecretService) ClearSecret(mctx MetaContext, username NormalizedUsername) error {
+func (s *SecretStoreSecretService) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
+	defer mctx.TraceTimed("SecretStoreSecretService.ClearSecret", func() error { return err })()
+
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return err
@@ -122,7 +127,9 @@ func (s *SecretStoreSecretService) ClearSecret(mctx MetaContext, username Normal
 	return nil
 }
 
-func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
+func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (usernames []string, err error) {
+	defer mctx.TraceTimed("SecretStoreSecretService.GetUsersWithStoredSecrets", func() error { return err })()
+
 	srv, err := secsrv.NewService()
 	if err != nil {
 		return nil, err
@@ -131,7 +138,6 @@ func (s *SecretStoreSecretService) GetUsersWithStoredSecrets(mctx MetaContext) (
 	if err != nil {
 		return nil, err
 	}
-	var usernames []string
 	for _, item := range items {
 		attributes, err := srv.GetAttributes(item)
 		if err != nil {
