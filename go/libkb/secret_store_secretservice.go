@@ -6,15 +6,15 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 
 	dbus "github.com/guelfey/go.dbus"
 	secsrv "github.com/keybase/go-keychain/secretservice"
+
+	"github.com/pkg/errors"
 )
 
-type SecretStoreSecretService struct {
-}
+type SecretStoreSecretService struct{}
 
 var _ SecretStoreAll = (*SecretStoreSecretService)(nil)
 
@@ -102,6 +102,7 @@ func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username Normal
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
