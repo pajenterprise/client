@@ -612,6 +612,8 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 }
 
 func TestBoxAuditSubteamAAA(t *testing.T) {
+	t.Skip("subteam auditing disabled for now")
+
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
