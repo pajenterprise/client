@@ -26,7 +26,7 @@ const updateUsername = state => {
       break
     case 'btc':
       // A simple check, the server does a fuller check
-      usernameValid = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+      usernameValid = !!username.match(/^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$/)
       break
   }
 
