@@ -704,10 +704,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 	var sections []SCTeamSection
 	memSet := newMemberSet()
-	maybeFirstSectionWithBoxSummary := -1
 
 	// Transform payloads to SCTeamSections.
-	for i, p := range tx.payloads {
+	for _, p := range tx.payloads {
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
 			Admin:    admin,
@@ -734,13 +733,6 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
-
-			// If there are addditions, then there will be a new key involved.
-			// If there are deletions, then we'll be rotating. So either way,
-			// this section needs a box summary.
-			if maybeFirstSectionWithBoxSummary == -1 {
-				maybeFirstSectionWithBoxSummary = i
-			}
 		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			entropy, err := makeSCTeamEntropy()
 			if err != nil {
@@ -788,19 +780,19 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
+	if err := addSummaryHash(&sections[len(sections)-1], secretBoxes); err != nil {
+		return err
+	}
+
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
-		// section that removes users and add it there. Also add
-		// box_summary_hash.
+		// section that removes users and add it there.
 		found := false
 		for i, v := range tx.payloads {
 			if v.Tag == txPayloadTagCryptomembers {
 				req := v.Val.(*keybase1.TeamChangeReq)
 				if len(req.None) > 0 {
 					sections[i].PerTeamKey = perTeamKeySection
-					if err := addSummaryHash(&sections[i], secretBoxes); err != nil {
-						return err
-					}
 					found = true
 					break
 				}
@@ -808,10 +800,6 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		}
 		if !found {
 			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
-		}
-	} else if maybeFirstSectionWithBoxSummary != -1 {
-		if err := addSummaryHash(&sections[maybeFirstSectionWithBoxSummary], secretBoxes); err != nil {
-			return err
 		}
 	}
 
