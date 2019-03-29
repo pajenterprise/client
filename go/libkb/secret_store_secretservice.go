@@ -62,7 +62,7 @@ func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username Nor
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
-	session, err := srv.OpenSession(secsrv.AuthenticationPlain)
+	session, err := srv.OpenSession(secsrv.AuthenticationDHIETF1024SHA256AES128CBCPKCS7)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -74,11 +74,11 @@ func (s *SecretStoreSecretService) RetrieveSecret(mctx MetaContext, username Nor
 	if item == nil {
 		return LKSecFullSecret{}, fmt.Errorf("secret not found in secretstore")
 	}
-	secretObj, err := srv.GetSecret(*item, session)
+	secretBytes, err := srv.GetSecret(*item, *session)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
-	return newLKSecFullSecretFromBytes(secretObj.Value)
+	return newLKSecFullSecretFromBytes(secretBytes)
 }
 
 func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
@@ -94,11 +94,9 @@ func (s *SecretStoreSecretService) StoreSecret(mctx MetaContext, username Normal
 	}
 	label := fmt.Sprintf("%s@%s", username, mctx.G().Env.GetStoredSecretServiceName())
 	properties := secsrv.NewSecretProperties(label, s.makeAttributes(mctx, username))
-	srvSecret := secsrv.Secret{
-		Session:     session,
-		Parameters:  nil,
-		Value:       secret.Bytes(),
-		ContentType: "application/octet-stream",
+	srvSecret, err := session.NewSecret(secret.Bytes())
+	if err != nil {
+		return err
 	}
 	err = srv.Unlock([]dbus.ObjectPath{secsrv.DefaultCollection})
 	if err != nil {
