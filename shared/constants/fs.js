@@ -37,11 +37,24 @@ export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
 })
 export const emptyFolder = makeNewFolder()
 
+export const prefetchNotStarted: Types.PrefetchNotStarted = I.Record({state: 'not-started'})()
+
+export const prefetchComplete: Types.PrefetchComplete = I.Record({state: 'completet'})()
+
+export const makePrefetchInProgress: I.RecordFactory<Types._PrefetchInProgress> = I.Record({
+  bytesFetched: 0,
+  bytesTotal: 0,
+  endEstimate: 0,
+  startTime: 0,
+  state: 'in-progress',
+})
+
 const pathItemMetadataDefault = {
   badgeCount: 0,
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
   name: 'unknown',
+  prefetchStatus: prefetchNotStarted,
   size: 0,
   tlfMeta: undefined,
   writable: false,
@@ -78,6 +91,15 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 
 export const unknownPathItem = makeUnknownPathItem()
 
+export const tlfSyncEnabled: Types.TlfSyncEnabled = I.Record({mode: 'enabled'})()
+
+export const tlfSyncDisabled: Types.TlfSyncDisabled = I.Record({mode: 'disabled'})()
+
+export const makeTlfSyncPartial: I.RecordFactory<Types._TlfSyncPartial> = I.Record({
+  enabledPaths: I.List(),
+  mode: 'partial',
+})
+
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   isFavorite: false,
   isIgnored: false,
@@ -85,6 +107,7 @@ export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
   name: '',
   needsRekey: false,
   resetParticipants: I.List(),
+  syncConfig: null,
   teamId: '',
   tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
@@ -256,8 +279,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 
-export const fsPathToRpcPathString = (p: Types.Path): string =>
-  Types.pathToString(p).substring('/keybase'.length) || '/'
+export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
+  PathType: RPCTypes.simpleFSPathType.kbfs,
+  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+})
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)

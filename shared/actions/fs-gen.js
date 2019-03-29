@@ -74,6 +74,8 @@ export const showSendAttachmentToChat = 'fs:showSendAttachmentToChat'
 export const showSendLinkToChat = 'fs:showSendLinkToChat'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
+export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
+export const tlfSyncConfigsLoaded = 'fs:tlfSyncConfigsLoaded'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
@@ -147,6 +149,8 @@ type _ShowSendAttachmentToChatPayload = $ReadOnly<{|path: Types.Path, routePath?
 type _ShowSendLinkToChatPayload = $ReadOnly<{|path: Types.Path, routePath?: ?I.List<string>|}>
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = $ReadOnly<{|path: Types.Path, sortSetting: Types.SortSetting|}>
+type _TlfSyncConfigLoadedPayload = $ReadOnly<{|tlfType: Types.TlfType, tlfName: string, syncConfig: Types.TlfSyncConfig|}>
+type _TlfSyncConfigsLoadedPayload = $ReadOnly<{|private: I.Map<string, Types.TlfSyncConfig>, public: I.Map<string, Types.TlfSyncConfig>, team: I.Map<string, Types.TlfSyncConfig>|}>
 type _UninstallKBFSConfirmPayload = void
 type _UploadPayload = $ReadOnly<{|parentPath: Types.Path, localPath: string|}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
@@ -220,6 +224,8 @@ export const createShowSendAttachmentToChat = (payload: _ShowSendAttachmentToCha
 export const createShowSendLinkToChat = (payload: _ShowSendLinkToChatPayload) => ({payload, type: showSendLinkToChat})
 export const createShowSystemFileManagerIntegrationBanner = (payload: _ShowSystemFileManagerIntegrationBannerPayload) => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload) => ({payload, type: sortSetting})
+export const createTlfSyncConfigLoaded = (payload: _TlfSyncConfigLoadedPayload) => ({payload, type: tlfSyncConfigLoaded})
+export const createTlfSyncConfigsLoaded = (payload: _TlfSyncConfigsLoadedPayload) => ({payload, type: tlfSyncConfigsLoaded})
 export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload) => ({payload, type: uninstallKBFSConfirm})
 export const createUpload = (payload: _UploadPayload) => ({payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({payload, type: uploadStarted})
@@ -293,6 +299,8 @@ export type ShowSendAttachmentToChatPayload = {|+payload: _ShowSendAttachmentToC
 export type ShowSendLinkToChatPayload = {|+payload: _ShowSendLinkToChatPayload, +type: 'fs:showSendLinkToChat'|}
 export type ShowSystemFileManagerIntegrationBannerPayload = {|+payload: _ShowSystemFileManagerIntegrationBannerPayload, +type: 'fs:showSystemFileManagerIntegrationBanner'|}
 export type SortSettingPayload = {|+payload: _SortSettingPayload, +type: 'fs:sortSetting'|}
+export type TlfSyncConfigLoadedPayload = {|+payload: _TlfSyncConfigLoadedPayload, +type: 'fs:tlfSyncConfigLoaded'|}
+export type TlfSyncConfigsLoadedPayload = {|+payload: _TlfSyncConfigsLoadedPayload, +type: 'fs:tlfSyncConfigsLoaded'|}
 export type UninstallKBFSConfirmPayload = {|+payload: _UninstallKBFSConfirmPayload, +type: 'fs:uninstallKBFSConfirm'|}
 export type UploadPayload = {|+payload: _UploadPayload, +type: 'fs:upload'|}
 export type UploadStartedPayload = {|+payload: _UploadStartedPayload, +type: 'fs:uploadStarted'|}
@@ -368,6 +376,8 @@ export type Actions =
   | ShowSendLinkToChatPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
+  | TlfSyncConfigLoadedPayload
+  | TlfSyncConfigsLoadedPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload
   | UploadStartedPayload

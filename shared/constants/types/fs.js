@@ -47,6 +47,24 @@ export type ResetMember = {
 
 export type TlfType = 'private' | 'public' | 'team'
 
+export type _TlfSyncEnabled = {
+  mode: 'enabled',
+}
+export type TlfSyncEnabled = I.RecordOf<_TlfSyncEnabled>
+
+export type _TlfSyncDisabled = {
+  mode: 'disabled',
+}
+export type TlfSyncDisabled = I.RecordOf<_TlfSyncDisabled>
+
+export type _TlfSyncPartial = {
+  mode: 'partial',
+  enabledPaths: I.List<Path>,
+}
+export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
+
+export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
+
 export type _Tlf = {
   name: string,
   isFavorite: boolean,
@@ -63,8 +81,21 @@ export type _Tlf = {
   // youCanUnlock has a list of devices that can unlock this folder, when this
   // folder needs a rekey.
   youCanUnlock?: I.List<Device>,
+  // TODO: when we move favorites stuff into SimpleFS, this should no longer
+  // need to be optional.
+  syncConfig: ?TlfSyncConfig,
 }
 export type Tlf = I.RecordOf<_Tlf>
+
+// name -> Tlf
+export type TlfList = I.Map<string, Tlf>
+
+export type _Tlfs = {
+  private: TlfList,
+  public: TlfList,
+  team: TlfList,
+}
+export type Tlfs = I.RecordOf<_Tlfs>
 
 export type _ParsedPathRoot = {
   kind: 'root',
@@ -117,35 +148,47 @@ export type ParsedPath =
   | ParsedPathInGroupTlf
   | ParsedPathInTeamTlf
 
-// name -> Tlf
-export type TlfList = I.Map<string, Tlf>
-
-export type _Tlfs = {
-  private: TlfList,
-  public: TlfList,
-  team: TlfList,
+export type _PrefetchNotStarted = {
+  state: 'not-started',
 }
-export type Tlfs = I.RecordOf<_Tlfs>
+export type PrefetchNotStarted = I.RecordOf<_PrefetchNotStarted>
 
-export type PathItemMetadata = {
+export type _PrefetchInProgress = {
+  state: 'in-progress',
+  startTime: number,
+  endEstimate: number,
+  bytesTotal: number,
+  bytesFetched: number,
+}
+export type PrefetchInProgress = I.RecordOf<_PrefetchInProgress>
+
+export type _PrefetchComplete = {
+  state: 'complete',
+}
+export type PrefetchComplete = I.RecordOf<_PrefetchComplete>
+
+export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
+
+type _PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
   lastWriter: RPCTypes.User,
   writable: boolean,
+  prefetchStatus: PrefetchStatus,
 }
 
 export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
   progress: ProgressType,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
   type: 'symlink',
   linkTarget: string,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
 export type _Mime = {
@@ -157,15 +200,25 @@ export type Mime = I.RecordOf<_Mime>
 export type _FilePathItem = {
   type: 'file',
   mimeType: ?Mime,
-} & PathItemMetadata
+} & _PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
 export type _UnknownPathItem = {
   type: 'unknown',
-} & PathItemMetadata
+} & _PathItemMetadata
 export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
+
+export type SyncStatus =
+  | 'unknown' // trying to figure out what it is
+  | 'awaiting-to-sync' // sync enabled but we're offline
+  | 'awaiting-to-upload' // has local changes but we're offline
+  | 'online-only' // sync disabled
+  | 'synced' // sync enabled and fully synced
+  | 'sync-error' // uh oh
+  | 'uploading' // flushing or writing into journal and we're online
+  | number // percentage<1. not uploading, and we're syncing down
 
 export opaque type EditID = string
 export type EditType = 'new-folder'

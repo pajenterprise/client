@@ -33,10 +33,90 @@ const loadFavorites = (state, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
+const getSyncConfigFromRPC = (config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+  switch (config.mode) {
+    case RPCTypes.simpleFSFolderSyncMode.disabled:
+      return Constants.tlfSyncDisabled
+    case RPCTypes.simpleFSFolderSyncMode.enabled:
+      return Constants.tlfSyncEnabled
+    case RPCTypes.simpleFSFolderSyncMode.partial:
+      return Constants.makeTlfSyncPartial({
+        enabledPaths: config.paths ? I.List(config.paths.map(str => Types.stringToPath(str))) : I.List(),
+      })
+    default:
+      // $FlowIssue the const objects aren't flow-friendly.
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
+      return Constants.tlfSyncDisabled
+  }
+}
+
+const tlfListToGetSyncConfigPromise = (state, tlfType) =>
+  Array.from(state.fs.tlfs.get(tlfType, I.Map()).keys()).map(tlfName =>
+    RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+      path: Constants.pathToRPCPath(Constants.tlfTypeAndNameToPath(tlfType, tlfName)),
+    }).then(result => ({
+      syncConfig: getSyncConfigFromRPC(result.config),
+      tlfName,
+      tlfType,
+    }))
+  )
+
+// TODO: make a SimpleFS RPC for this case where we are asking for all.
+const loadSyncConfigForAllTlfs = (state, action) =>
+  Promise.all(
+    // TODO: bug strib about problems here where we'd get an error if a TLF is
+    // not backed by team.
+    [/* 'private', 'public', */ 'team']
+      .map(tlfType => tlfListToGetSyncConfigPromise(state, tlfType))
+      // $FlowIssue hasn't learnt about .flat yet.
+      .flat()
+  ).then(results => {
+    const payloadMutable = results.reduce(
+      (payload, {syncConfig, tlfType, tlfName}) => ({
+        ...payload,
+        [tlfType]: payload[tlfType].set(tlfName, syncConfig),
+      }),
+      {
+        private: I.Map().asMutable(),
+        public: I.Map().asMutable(),
+        team: I.Map().asMutable(),
+      }
+    )
+    return FsGen.createTlfSyncConfigsLoaded({
+      private: payloadMutable.private.asImmutable(),
+      public: payloadMutable.public.asImmutable(),
+      team: payloadMutable.team.asImmutable(),
+    })
+  })
+
+const getPrefetchStatusFromRPC = (
+  prefetchStatus: RPCTypes.PrefetchStatus,
+  prefetchProgress: RPCTypes.PrefetchProgress
+) => {
+  switch (prefetchStatus) {
+    case RPCTypes.simpleFSPrefetchStatus.notStarted:
+      return Constants.prefetchNotStarted
+    case RPCTypes.simpleFSPrefetchStatus.inProgress:
+      return Constants.makePrefetchInProgress({
+        bytesFetched: prefetchProgress.bytesFetched,
+        bytesTotal: prefetchProgress.bytesTotal,
+        endEstimate: prefetchProgress.endEstimate,
+        startTime: prefetchProgress.start,
+      })
+    case RPCTypes.simpleFSPrefetchStatus.complete:
+      return Constants.prefetchComplete
+    default:
+      // $FlowIssue the const objects aren't flow-friendly.
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(prefetchStatus)
+      return Constants.prefetchNotStarted
+  }
+}
+
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified,
   name: d.name.split('/').pop(),
+  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
   size: d.size,
   writable: d.writable,
 })
@@ -97,10 +177,7 @@ function* folderList(_, action) {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
         filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(rootPath),
-        },
+        path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
       })
     } else {
@@ -108,10 +185,7 @@ function* folderList(_, action) {
         depth: 1,
         filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         opID,
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(rootPath),
-        },
+        path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: !!refreshTag,
       })
     }
@@ -262,10 +336,7 @@ function* download(state, action) {
       local: localPath,
     },
     opID,
-    src: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
-    },
+    src: Constants.pathToRPCPath(path),
   })
 
   try {
@@ -304,10 +375,7 @@ function* upload(_, action) {
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(path),
-    },
+    dest: Constants.pathToRPCPath(path),
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.local,
@@ -544,10 +612,7 @@ const commitEdit = (state, action) => {
   switch (type) {
     case 'new-folder':
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-        dest: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(Types.pathConcat(parentPath, name)),
-        },
+        dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.simpleFSOpenFlags.directory,
         opID: Constants.makeUUID(),
       })
@@ -577,10 +642,7 @@ function* loadPathMetadata(state, action) {
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-      path: {
-        PathType: RPCTypes.simpleFSPathType.kbfs,
-        kbfs: Constants.fsPathToRpcPathString(path),
-      },
+      path: Constants.pathToRPCPath(path),
       refreshSubscription: !!refreshTag,
     })
     let pathItem = makeEntry(dirent)
@@ -613,10 +675,7 @@ const deleteFile = (state, action) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
     opID,
-    path: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(action.payload.path),
-    },
+    path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
   })
     .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
@@ -628,25 +687,19 @@ const moveOrCopy = (state, action) => {
     return
   }
   const params = {
-    dest: {
-      PathType: RPCTypes.simpleFSPathType.kbfs,
-      kbfs: Constants.fsPathToRpcPathString(
-        Types.pathConcat(
-          action.payload.destinationParentPath,
-          state.fs.destinationPicker.source.type === 'move-or-copy'
-            ? Types.getPathName(state.fs.destinationPicker.source.path)
-            : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-          // We use the local path name here since we only care about file name.
-        )
-      ),
-    },
+    dest: Constants.pathToRPCPath(
+      Types.pathConcat(
+        action.payload.destinationParentPath,
+        state.fs.destinationPicker.source.type === 'move-or-copy'
+          ? Types.getPathName(state.fs.destinationPicker.source.path)
+          : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
+        // We use the local path name here since we only care about file name.
+      )
+    ),
     opID: Constants.makeUUID(),
     src:
       state.fs.destinationPicker.source.type === 'move-or-copy'
-        ? {
-            PathType: RPCTypes.simpleFSPathType.kbfs,
-            kbfs: Constants.fsPathToRpcPathString(state.fs.destinationPicker.source.path),
-          }
+        ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
         : state.fs.destinationPicker.source.type === 'incoming-share'
         ? {
             PathType: RPCTypes.simpleFSPathType.local,
@@ -831,6 +884,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
+  yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
   yield* Saga.chainGenerator<FsGen.NotifySyncActivityPayload>(

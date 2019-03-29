@@ -26,6 +26,16 @@
       "public": "I.Map<string, Types.Tlf>",
       "team": "I.Map<string, Types.Tlf>"
     },
+    "tlfSyncConfigLoaded": {
+      "tlfType": "Types.TlfType",
+      "tlfName": "string",
+      "syncConfig": "Types.TlfSyncConfig",
+    },
+    "tlfSyncConfigsLoaded": {
+      "private": "I.Map<string, Types.TlfSyncConfig>",
+      "public": "I.Map<string, Types.TlfSyncConfig>",
+      "team": "I.Map<string, Types.TlfSyncConfig>"
+    },
     "pathItemLoaded": {
       "path": "Types.Path",
       "pathItem": "Types.PathItem"

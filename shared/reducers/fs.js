@@ -121,6 +121,29 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           team: action.payload.team,
         })
       )
+    case FsGen.tlfSyncConfigLoaded:
+      return state.update('tlfs', tlfs =>
+        tlfs.update(action.payload.tlfType, tlfList =>
+          tlfList.update(
+            action.payload.tlfName,
+            tlf => tlf && tlf.set('syncConfig', action.payload.syncConfig)
+          )
+        )
+      )
+    case FsGen.tlfSyncConfigsLoaded:
+      return ['private', 'public', 'team'].reduce(
+        (state, tlfType) =>
+          state.update('tlfs', tlfs =>
+            tlfs.update(tlfType, tlfList =>
+              tlfList.withMutations(tlfList =>
+                (action.payload[tlfType] || I.Map()).forEach((syncConfig, tlfName) =>
+                  tlfList.update(tlfName, tlf => tlf && tlf.set('syncConfig', syncConfig))
+                )
+              )
+            )
+          ),
+        state
+      )
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
