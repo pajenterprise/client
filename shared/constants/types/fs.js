@@ -59,6 +59,8 @@ export type TlfSyncDisabled = I.RecordOf<_TlfSyncDisabled>
 
 export type _TlfSyncPartial = {
   mode: 'partial',
+  // TODO: swap this out with some smarter data structure to allow faster
+  // lookups.
   enabledPaths: I.List<Path>,
 }
 export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
@@ -286,7 +288,7 @@ export type _Uploads = {
 
   totalSyncingBytes: number,
   endEstimate?: number,
-  syncingPaths: I.Set<Path>,
+  syncingPaths: I.Set<Path>, // paths being uploaded from journal
 }
 export type Uploads = I.RecordOf<_Uploads>
 

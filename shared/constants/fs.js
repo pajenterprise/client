@@ -917,6 +917,60 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     ? Types.getLocalPathName(picker.source.localPath)
     : ''
 
+const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path): boolean => {
+  switch (syncConfig.mode) {
+    case 'disabled':
+      return false
+    case 'enabled':
+      return true
+    case 'partial':
+      // TODO: when we enable partial sync lookup, remember to deal with
+      // potential ".." traversal as well.
+      return false
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(syncConfig.mode)
+      return false
+  }
+}
+
+export const getSyncStatusInMergeProps = (
+  tlf: Types.Tlf,
+  pathItem: Types.PathItem,
+  uploadingPaths: I.Set<Types.Path>,
+  path: Types.Path
+): Types.SyncStatus => {
+  if (!tlf.syncConfig || pathItem === unknownPathItem) {
+    return 'unknown'
+  }
+  const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
+  // uploading state has higher priority
+  if (uploadingPaths.has(path)) {
+    // TODO: we need a way to know if we're online or offline, and return 'awaiting-to-upload' here when offline.
+    return 'uploading'
+  }
+  if (!isPathEnabledForSync(tlfSyncConfig, path)) {
+    return 'online-only'
+  }
+
+  // TODO: what about 'sync-error'?
+
+  // We don't have an upload state, and sync is enabled for this path.
+  switch (pathItem.prefetchStatus.state) {
+    case 'not-started':
+      // TODO: can this happen when online?
+      return 'awaiting-to-sync'
+    case 'complete':
+      return 'synced'
+    case 'in-progress':
+      // TODO: can this happen when offline?
+      const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
+      return inProgress.bytesFetched / inProgress.bytesTotal
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus.state)
+      return 'unknown'
+  }
+}
+
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
