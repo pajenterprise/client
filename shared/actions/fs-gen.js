@@ -11,6 +11,7 @@ import * as ChatTypes from '../constants/types/chat2'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
+export const clearFolderViewFilter = 'fs:clearFolderViewFilter'
 export const clearRefreshTag = 'fs:clearRefreshTag'
 export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
@@ -59,6 +60,7 @@ export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
+export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
@@ -84,6 +86,7 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
+type _ClearFolderViewFilterPayload = void
 type _ClearRefreshTagPayload = $ReadOnly<{|refreshTag: Types.RefreshTag|}>
 type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = $ReadOnly<{|editID: Types.EditID|}>
@@ -132,6 +135,7 @@ type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|path: Types.Path, key: string|}>
 type _SetDestinationPickerParentPathPayload = $ReadOnly<{|index: number, path: Types.Path|}>
 type _SetDriverStatusPayload = $ReadOnly<{|driverStatus: Types.DriverStatus|}>
+type _SetFolderViewFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetIncomingShareLocalPathPayload = $ReadOnly<{|localPath: Types.LocalPath|}>
 type _SetMoveOrCopySourcePayload = $ReadOnly<{|path: Types.Path|}>
 type _SetPathItemActionMenuDownloadKeyPayload = $ReadOnly<{|key: ?string|}>
@@ -157,6 +161,7 @@ type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({payload, type: cancelDownload})
+export const createClearFolderViewFilter = (payload: _ClearFolderViewFilterPayload) => ({payload, type: clearFolderViewFilter})
 export const createClearRefreshTag = (payload: _ClearRefreshTagPayload) => ({payload, type: clearRefreshTag})
 export const createCloseDestinationPicker = (payload: _CloseDestinationPickerPayload) => ({payload, type: closeDestinationPicker})
 export const createCommitEdit = (payload: _CommitEditPayload) => ({payload, type: commitEdit})
@@ -205,6 +210,7 @@ export const createRefreshLocalHTTPServerInfo = (payload: _RefreshLocalHTTPServe
 export const createSaveMedia = (payload: _SaveMediaPayload) => ({payload, type: saveMedia})
 export const createSetDestinationPickerParentPath = (payload: _SetDestinationPickerParentPathPayload) => ({payload, type: setDestinationPickerParentPath})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload) => ({payload, type: setDriverStatus})
+export const createSetFolderViewFilter = (payload: _SetFolderViewFilterPayload) => ({payload, type: setFolderViewFilter})
 export const createSetIncomingShareLocalPath = (payload: _SetIncomingShareLocalPathPayload) => ({payload, type: setIncomingShareLocalPath})
 export const createSetMoveOrCopySource = (payload: _SetMoveOrCopySourcePayload) => ({payload, type: setMoveOrCopySource})
 export const createSetPathItemActionMenuDownloadKey = (payload: _SetPathItemActionMenuDownloadKeyPayload) => ({payload, type: setPathItemActionMenuDownloadKey})
@@ -230,6 +236,7 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload) => (
 
 // Action Payloads
 export type CancelDownloadPayload = {|+payload: _CancelDownloadPayload, +type: 'fs:cancelDownload'|}
+export type ClearFolderViewFilterPayload = {|+payload: _ClearFolderViewFilterPayload, +type: 'fs:clearFolderViewFilter'|}
 export type ClearRefreshTagPayload = {|+payload: _ClearRefreshTagPayload, +type: 'fs:clearRefreshTag'|}
 export type CloseDestinationPickerPayload = {|+payload: _CloseDestinationPickerPayload, +type: 'fs:closeDestinationPicker'|}
 export type CommitEditPayload = {|+payload: _CommitEditPayload, +type: 'fs:commitEdit'|}
@@ -278,6 +285,7 @@ export type RefreshLocalHTTPServerInfoPayload = {|+payload: _RefreshLocalHTTPSer
 export type SaveMediaPayload = {|+payload: _SaveMediaPayload, +type: 'fs:saveMedia'|}
 export type SetDestinationPickerParentPathPayload = {|+payload: _SetDestinationPickerParentPathPayload, +type: 'fs:setDestinationPickerParentPath'|}
 export type SetDriverStatusPayload = {|+payload: _SetDriverStatusPayload, +type: 'fs:setDriverStatus'|}
+export type SetFolderViewFilterPayload = {|+payload: _SetFolderViewFilterPayload, +type: 'fs:setFolderViewFilter'|}
 export type SetIncomingShareLocalPathPayload = {|+payload: _SetIncomingShareLocalPathPayload, +type: 'fs:setIncomingShareLocalPath'|}
 export type SetMoveOrCopySourcePayload = {|+payload: _SetMoveOrCopySourcePayload, +type: 'fs:setMoveOrCopySource'|}
 export type SetPathItemActionMenuDownloadKeyPayload = {|+payload: _SetPathItemActionMenuDownloadKeyPayload, +type: 'fs:setPathItemActionMenuDownloadKey'|}
@@ -305,6 +313,7 @@ export type WaitForKbfsDaemonPayload = {|+payload: _WaitForKbfsDaemonPayload, +t
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
+  | ClearFolderViewFilterPayload
   | ClearRefreshTagPayload
   | CloseDestinationPickerPayload
   | CommitEditPayload
@@ -353,6 +362,7 @@ export type Actions =
   | SaveMediaPayload
   | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
+  | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
